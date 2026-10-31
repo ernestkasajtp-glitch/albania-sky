@@ -21,6 +21,6 @@ WORKDIR /app
 # Keep the workspace layout: the API serves ../../flight-system/dist/public etc.,
 # and the db bootstrap script needs drizzle-kit + the schema sources.
 COPY --from=build /app /app
-WORKDIR /app/artifacts/api-server
+RUN chmod +x /app/docker-entrypoint.sh
 EXPOSE 10000
-CMD ["node", "--enable-source-maps", "./dist/index.mjs"]
+CMD ["/app/docker-entrypoint.sh"]

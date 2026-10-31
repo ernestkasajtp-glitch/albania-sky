@@ -6,8 +6,8 @@ services:
     name: albania-sky-app
     runtime: docker
     dockerfilePath: ./Dockerfile
-    # Creates the schema on an empty database; does nothing if tables exist.
-    preDeployCommand: cd /app && pnpm --filter @workspace/db run bootstrap
+    # docker-entrypoint.sh creates the schema on an empty database (no-op otherwise)
+    # and then starts the server.
     region: frankfurt
     plan: starter
     healthCheckPath: /api/healthz
