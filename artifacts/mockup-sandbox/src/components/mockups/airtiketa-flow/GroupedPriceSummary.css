@@ -1,0 +1,19 @@
+.as-flow.as-grouped-preview{padding:24px 24px 28px;min-height:100dvh}
+.as-grouped-preview .as-grouped-column{width:100%;max-width:380px;margin:0 auto;display:grid;gap:18px}
+.as-grouped-preview .as-grouped-notice{font-size:10px;color:var(--as-muted);text-align:center;letter-spacing:.15px}
+.as-grouped-preview .as-summary{position:static;padding:24px}
+.as-grouped-preview .as-summary-row{font-size:14px;padding:8px 0;align-items:center}
+.as-grouped-preview .as-summary-row strong{font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.as-grouped-preview .as-summary-row small{font-size:11px;margin-top:3px}
+.as-grouped-preview .as-total strong:last-child{color:var(--as-red);font-variant-numeric:tabular-nums}
+.as-grouped-preview .as-source-actions{gap:8px;margin-top:18px}
+.as-grouped-preview .as-source-actions .as-btn{padding:11px 18px}
+.as-grouped-preview .as-summary .as-divider{margin:14px 0}
+.as-grouped-preview .as-source-actions .as-btn:disabled{opacity:.68}
+.as-grouped-preview .as-sidebar-flight{padding:20px 24px}
+.as-grouped-preview .as-sidebar-itinerary{margin:14px 0}
+.as-grouped-preview .as-sidebar-flight-heading{padding-bottom:10px}
+.as-grouped-preview .as-sidebar-airline{margin-top:12px}
+.as-grouped-preview .as-sidebar-airport time{margin-top:6px}
+.as-grouped-preview .as-sidebar-fare{padding-top:10px}
+@media(max-width:420px){.as-flow.as-grouped-preview{padding:24px 16px}.as-grouped-preview .as-summary,.as-grouped-preview .as-sidebar-flight{padding:22px}}

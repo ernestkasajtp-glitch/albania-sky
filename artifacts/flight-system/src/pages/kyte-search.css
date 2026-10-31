@@ -1,0 +1,122 @@
+.kyte-page {
+  --kyte-ink: #172b46;
+  --kyte-muted: #63748a;
+  --kyte-line: #dce5ed;
+  --kyte-blue: #2760a8;
+  --kyte-panel: #f0f5f8;
+  color: var(--kyte-ink);
+  min-height: 100dvh;
+  padding: 28px clamp(16px, 3vw, 42px) 72px;
+  background: #f2f6f8;
+}
+.kyte-page * { box-sizing: border-box; }
+.kyte-inner { max-width: 1240px; margin: 0 auto; }
+.kyte-eyebrow { text-transform: uppercase; letter-spacing: .17em; font-size: 10px; font-weight: 800; }
+.kyte-hero {
+  position: relative; overflow: hidden; isolation: isolate;
+  padding: clamp(25px, 4vw, 48px);
+  border-radius: 20px; color: #eaf3fb;
+  background: #172d48;
+}
+.kyte-hero::after {
+  content: ""; position: absolute; z-index: -1; right: -70px; top: -165px;
+  width: 470px; height: 470px; border: 1px solid #ffffff28;
+  border-radius: 50%; box-shadow: 0 0 0 75px #ffffff08, 0 0 0 150px #ffffff06;
+  pointer-events: none;
+}
+.kyte-hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.kyte-hero-label { color: #aac7e8; display: flex; align-items: center; gap: 9px; }
+.kyte-internal {
+  border: 1px solid #b8d5ef50; border-radius: 50px; padding: 7px 11px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; color: #d7e9f9;
+  background: #ffffff0c;
+}
+.kyte-title { font-size: clamp(28px, 3.1vw, 43px); font-weight: 750; letter-spacing: -.045em; line-height: 1.08; margin: 34px 0 10px; }
+.kyte-description { max-width: 600px; color: #bdd0e1; font-size: 14px; line-height: 1.65; }
+.kyte-main { display: grid; grid-template-columns: minmax(320px, 390px) minmax(0, 1fr); align-items: start; gap: 22px; margin-top: 22px; }
+.kyte-card { background: #fcfdfd; border: 1px solid var(--kyte-line); border-radius: 17px; box-shadow: 0 7px 28px #193b5910; }
+.kyte-form-card { padding: 24px; }
+.kyte-section-heading { display: flex; align-items: center; gap: 11px; margin-bottom: 24px; }
+.kyte-heading-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: #e8f1fa; color: var(--kyte-blue); }
+.kyte-section-heading h2 { font-size: 16px; line-height: 1.1; letter-spacing: -.02em; font-weight: 750; margin: 0; }
+.kyte-section-heading p { font-size: 12px; color: var(--kyte-muted); margin: 4px 0 0; }
+.kyte-field { display: block; min-width: 0; }
+.kyte-label { display: block; margin-bottom: 7px; color: #384e68; font-size: 11px; font-weight: 750; letter-spacing: .025em; }
+.kyte-control {
+  width: 100%; min-width: 0; height: 43px; padding: 0 12px; border: 1px solid #cfdae4; border-radius: 9px;
+  background: #f8fbfc; color: var(--kyte-ink); font: inherit; font-size: 13px; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.kyte-control:focus-visible, .kyte-check:focus-visible, .kyte-action:focus-visible, .kyte-mini:focus-visible {
+  outline: 2px solid #4b8ed2; outline-offset: 2px;
+}
+.kyte-control:focus { border-color: #4282c6; box-shadow: 0 0 0 3px #4282c61c; }
+.kyte-control::placeholder { color: #9baab8; }
+.kyte-control[aria-invalid="true"] { border-color: #b94e55; }
+.kyte-error-text { font-size: 11px; margin: 5px 0 0; color: #b33e48; }
+.kyte-grid-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+.kyte-field-stack { display: grid; gap: 17px; }
+.kyte-divider { height: 1px; background: var(--kyte-line); margin: 23px 0; }
+.kyte-age-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 750; margin-bottom: 10px; }
+.kyte-age-list { display: grid; gap: 9px; }
+.kyte-age-row { display: flex; align-items: center; gap: 9px; }
+.kyte-age-row span { min-width: 60px; color: var(--kyte-muted); font-size: 12px; }
+.kyte-age-row select { flex: 1; }
+.kyte-mini { display: inline-flex; justify-content: center; align-items: center; gap: 4px; min-height: 29px; padding: 5px 8px; border-radius: 7px; border: 1px solid #d4e1eb; background: #f4f8fb; color: #265a91; font-size: 11px; font-weight: 750; cursor: pointer; }
+.kyte-mini:hover { background: #e7f1f9; }
+.kyte-mini:disabled { opacity: .45; cursor: not-allowed; }
+.kyte-count-note { font-size: 11px; color: var(--kyte-muted); margin-top: 11px; }
+.kyte-check-line { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-weight: 650; }
+.kyte-check { width: 16px; height: 16px; accent-color: var(--kyte-blue); }
+.kyte-submit {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+  margin-top: 23px; min-height: 46px; border: 0; border-radius: 9px; cursor: pointer;
+  background: #2760a8; color: #fff; font-size: 13px; font-weight: 750;
+  transition: background .2s, transform .2s;
+}
+.kyte-submit:hover:not(:disabled) { background: #1b4f91; transform: translateY(-1px); }
+.kyte-submit:disabled { opacity: .65; cursor: wait; }
+.kyte-result-shell { min-width: 0; }
+.kyte-result-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin: 5px 0 15px; }
+.kyte-result-header h2 { font-size: 19px; font-weight: 750; letter-spacing: -.03em; margin: 3px 0 0; }
+.kyte-result-meta { font-size: 11px; color: var(--kyte-muted); }
+.kyte-alert { display: flex; align-items: flex-start; gap: 10px; border-radius: 10px; padding: 12px 14px; margin-bottom: 11px; font-size: 12px; line-height: 1.5; }
+.kyte-alert svg { flex-shrink: 0; margin-top: 1px; }
+.kyte-alert-warning { background: #fff6e4; border: 1px solid #f0daa8; color: #76541b; }
+.kyte-alert-error { background: #fff0ef; border: 1px solid #eac7c3; color: #9e3338; }
+.kyte-alert p { margin: 0 0 3px; }
+.kyte-alert p:last-child { margin: 0; }
+.kyte-empty { padding: 64px 28px; text-align: center; }
+.kyte-empty-icon { display: grid; place-items: center; width: 62px; height: 62px; margin: 0 auto 20px; border-radius: 18px; background: #edf4f8; color: #4d80ac; }
+.kyte-empty h3 { font-size: 17px; font-weight: 750; letter-spacing: -.02em; margin: 0 0 8px; }
+.kyte-empty p { max-width: 370px; margin: auto; color: var(--kyte-muted); font-size: 13px; line-height: 1.6; }
+.kyte-offers { display: grid; gap: 13px; }
+.kyte-offer { overflow: hidden; }
+.kyte-offer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; padding: 20px 22px 16px; border-bottom: 1px solid var(--kyte-line); }
+.kyte-airline { color: var(--kyte-muted); font-size: 11px; font-weight: 750; text-transform: uppercase; letter-spacing: .08em; }
+.kyte-price { font-size: 23px; font-weight: 800; letter-spacing: -.04em; line-height: 1.2; margin-top: 4px; }
+.kyte-quote-status { display: inline-flex; align-items: center; gap: 5px; border-radius: 30px; padding: 5px 9px; background: #e9f4ee; color: #26714a; font-size: 10px; font-weight: 750; white-space: nowrap; }
+.kyte-quote-status.expired { background: #f9eceb; color: #aa4b4b; }
+.kyte-quote-status.unknown { background: #eef1f5; color: #596c80; }
+.kyte-journeys { padding: 3px 22px 19px; }
+.kyte-journey { padding-top: 16px; }
+.kyte-journey + .kyte-journey { border-top: 1px solid var(--kyte-line); margin-top: 17px; }
+.kyte-journey-head { display: flex; justify-content: space-between; align-items: center; gap: 9px; margin-bottom: 13px; }
+.kyte-journey-head strong { font-size: 12px; }
+.kyte-journey-head span { font-size: 11px; color: var(--kyte-muted); }
+.kyte-segment { display: grid; grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr); align-items: center; gap: 12px; }
+.kyte-segment + .kyte-segment { margin-top: 17px; }
+.kyte-station:last-child { text-align: right; }
+.kyte-time { font-size: 19px; letter-spacing: -.04em; font-weight: 780; line-height: 1.2; }
+.kyte-airport { font-size: 12px; font-weight: 700; margin-top: 3px; overflow-wrap: anywhere; }
+.kyte-date { color: var(--kyte-muted); font-size: 11px; margin-top: 3px; }
+.kyte-flight-line { display: flex; flex-direction: column; align-items: center; color: #758da6; font-size: 10px; text-align: center; }
+.kyte-flight-line i { display: block; position: relative; width: 100%; height: 1px; margin: 8px 0; background: #a7c3dd; }
+.kyte-flight-line i::before, .kyte-flight-line i::after { content: ""; position: absolute; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: #7ea6c9; }
+.kyte-flight-line i::before { left: 0; } .kyte-flight-line i::after { right: 0; }
+.kyte-offer-foot { padding: 10px 22px; border-top: 1px solid var(--kyte-line); background: #f8fafb; color: var(--kyte-muted); font-size: 11px; line-height: 1.5; }
+.kyte-skeleton { height: 175px; margin-bottom: 13px; border-radius: 17px; background: linear-gradient(100deg, #e9f0f4 20%, #f7fafb 40%, #e9f0f4 60%); background-size: 200% 100%; animation: kyte-shimmer 1.5s linear infinite; }
+@keyframes kyte-shimmer { to { background-position-x: -200%; } }
+@media (max-width: 1000px) { .kyte-main { grid-template-columns: 1fr; } .kyte-form-card { max-width: none; } }
+@media (max-width: 560px) { .kyte-page { padding: 16px 12px 55px; } .kyte-hero { border-radius: 14px; } .kyte-title { margin-top: 24px; } .kyte-form-card { padding: 18px; } .kyte-segment { grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr); gap: 5px; } .kyte-flight-line { font-size: 9px; overflow-wrap: anywhere; } }
+@media (prefers-reduced-motion: reduce) { .kyte-skeleton { animation: none; } .kyte-submit { transition: none; } }

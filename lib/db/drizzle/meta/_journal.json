@@ -1,0 +1,97 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1775496150705,
+      "tag": "0000_heavy_sebastian_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776443869015,
+      "tag": "0001_woozy_wilson_fisk",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789302427580,
+      "tag": "0002_confused_magneto",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789303000000,
+      "tag": "0003_pok_payment_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789303100000,
+      "tag": "0004_pok_active_intent",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789311600000,
+      "tag": "0005_booking_user_role_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790343669527,
+      "tag": "0006_kyte_sandbox_booking_attempts",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790420000000,
+      "tag": "0007_agent_flight_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790431200000,
+      "tag": "0008_agent_visibility_optional_airport",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790432100000,
+      "tag": "0009_agent_flight_default_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790432200000,
+      "tag": "0010_agency_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790432600000,
+      "tag": "0011_agency_group_rule_dates",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1790445000000,
+      "tag": "0012_public_enrollments",
+      "breakpoints": true
+    }
+  ]
+}

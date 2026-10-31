@@ -1,0 +1,71 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* flight-system/src/index.css light tokens, scoped instead of mutating :root.
+   Graphite's ThemeContext border override is applied at the same local boundary.
+   No dark/system-dark rules are needed for the fixed graphite baseline. */
+.nav-gold-current {
+  --button-outline: rgba(0,0,0,.10);
+  --badge-outline: rgba(0,0,0,.05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0,.03);
+  --elevate-2: rgba(0,0,0,.08);
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 214 32% 91%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 214 32% 91%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222 47% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 215 16% 72%;
+  --input: 215 16% 72%;
+  --ring: 221 83% 53%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-border: 214 32% 91%;
+  --sidebar-primary: 221 83% 53%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 210 40% 96.1%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-ring: 221 83% 53%;
+  --chart-1: 221 83% 53%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  --app-font-sans: 'Inter', sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: .5rem;
+  --shadow-2xs: 0px 2px 0px 0px rgba(0,0,0,.02);
+  --shadow-xs: 0px 2px 0px 0px rgba(0,0,0,.02);
+  --shadow-sm: 0px 2px 0px 0px rgba(0,0,0,.02), 0px 1px 2px -1px rgba(0,0,0,.02);
+  --shadow: 0px 2px 0px 0px rgba(0,0,0,.02), 0px 1px 2px -1px rgba(0,0,0,.02);
+  --shadow-md: 0px 2px 0px 0px rgba(0,0,0,.02), 0px 2px 4px -1px rgba(0,0,0,.02);
+  --shadow-lg: 0px 2px 0px 0px rgba(0,0,0,.02), 0px 4px 6px -1px rgba(0,0,0,.02);
+  --shadow-xl: 0px 2px 0px 0px rgba(0,0,0,.02), 0px 8px 10px -1px rgba(0,0,0,.02);
+  --shadow-2xl: 0px 2px 0px 0px rgba(0,0,0,.02);
+  --theme-accent: #64748b;
+  --theme-sidebar-bg: #e9ebee;
+  --theme-main-bg: #f1f2f4;
+  font-family: 'Inter', sans-serif;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  -webkit-font-smoothing: antialiased;
+}
+/* Source index.css .page-filter-panel — this blue gradient is intentional. */
+.nav-gold-current .page-filter-panel {
+  background: linear-gradient(135deg, hsl(214 100% 92%), hsl(206 100% 88%)) !important;
+  border-color: hsl(213 82% 62%) !important;
+  box-shadow: 0 4px 14px hsl(213 80% 40% / 0.14);
+}

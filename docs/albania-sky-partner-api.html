@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Albania Sky — Partner Flight Pricing API</title>
+<style>
+  :root {
+    --navy: #0b1f3a; --navy2: #1a3a6b; --sky: #2563eb;
+    --gold: #c9a44a; --ink: #1c2733; --muted: #5b6b7d;
+    --line: #e3e8ef; --bg: #f5f8fc; --green: #166534;
+    --red: #991b1b; --code-bg: #0f172a; --code-fg: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color: var(--ink); font-size: 13px; line-height: 1.65; background:#fff; }
+  h1,h2,h3,h4 { line-height:1.2; color:var(--navy); }
+  p { margin:.55em 0; }
+  ul,ol { margin:.5em 0; padding-left:1.4em; }
+  li { margin:.2em 0; }
+  a { color:var(--sky); }
+  strong { color:var(--navy); }
+
+  /* ── Cover ── */
+  .cover {
+    height:100vh; background:linear-gradient(150deg,var(--navy) 0%,var(--navy2) 55%,#244a86 100%);
+    color:#fff; display:flex; flex-direction:column; justify-content:center;
+    padding:0 64px; position:relative; overflow:hidden;
+  }
+  .cover::after { content:"✈"; position:absolute; right:-50px; bottom:-70px;
+    font-size:440px; color:rgba(255,255,255,.05); transform:rotate(-15deg); }
+  .cover .kicker { letter-spacing:4px; font-size:11px; text-transform:uppercase;
+    color:var(--gold); font-weight:700; margin-bottom:16px; }
+  .cover h1 { color:#fff; font-size:46px; font-weight:800; letter-spacing:-.5px; margin-bottom:6px; }
+  .cover .sub { font-size:16px; color:rgba(255,255,255,.82); margin-top:12px; max-width:500px; }
+  .cover .brand { font-size:22px; font-weight:800; margin-bottom:36px; }
+  .cover .brand span { color:var(--gold); }
+  .cover .meta { position:absolute; bottom:44px; left:64px; font-size:12px; color:rgba(255,255,255,.6); }
+  .cover .meta b { color:#fff; }
+  .cover .confidential {
+    position:absolute; top:44px; right:64px;
+    border:1.5px solid rgba(201,164,74,.7); color:var(--gold);
+    font-size:10px; font-weight:700; letter-spacing:2px; padding:5px 14px; border-radius:4px;
+    text-transform:uppercase;
+  }
+
+  /* ── Layout ── */
+  .page { padding:32px 52px 44px; }
+  .page-break { page-break-before:always; }
+
+  /* ── Section headings ── */
+  h2.sec {
+    font-size:20px; border-bottom:3px solid var(--gold);
+    padding-bottom:10px; margin-bottom:16px; margin-top:28px;
+    display:flex; align-items:center; gap:10px;
+  }
+  h2.sec:first-child { margin-top:0; }
+  .sec-badge {
+    background:var(--navy); color:#fff; font-size:11px; font-weight:700;
+    padding:3px 9px; border-radius:5px; letter-spacing:.3px;
+  }
+  h3 { font-size:15px; margin:18px 0 8px; color:var(--navy2); }
+  h4 { font-size:13px; margin:12px 0 6px; color:var(--sky); }
+
+  /* ── Key display ── */
+  .api-key-box {
+    background:var(--code-bg); border-radius:10px; padding:20px 24px; margin:14px 0;
+    border-left:4px solid var(--gold);
+  }
+  .api-key-box .label { font-size:10px; font-weight:700; color:var(--gold); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+  .api-key-box .key { font-family:"Courier New",Courier,monospace; font-size:14px; color:#fff; word-break:break-all; }
+
+  /* ── Code blocks ── */
+  pre {
+    background:var(--code-bg); color:var(--code-fg); border-radius:8px;
+    padding:16px 18px; font-family:"Courier New",Courier,monospace;
+    font-size:12px; line-height:1.55; overflow-x:auto; margin:10px 0;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .token-key { color:#93c5fd; }
+  .token-str { color:#86efac; }
+  .token-num { color:#fbbf24; }
+  .token-null { color:#f87171; }
+  .token-comment { color:#64748b; font-style:italic; }
+  code { font-family:"Courier New",Courier,monospace; background:var(--bg); color:var(--navy2);
+    font-size:11.5px; padding:1px 5px; border-radius:4px; border:1px solid var(--line); }
+
+  /* ── URL pill ── */
+  .url-pill { background:var(--bg); border:1.5px solid var(--line); border-radius:8px; padding:12px 16px; margin:8px 0; font-family:monospace; font-size:13px; }
+  .method { display:inline-block; background:var(--sky); color:#fff; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; margin-right:8px; }
+  .method.get { background:#15803d; }
+
+  /* ── Tables ── */
+  table { width:100%; border-collapse:collapse; margin:10px 0; font-size:12px; }
+  th,td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:var(--navy); color:#fff; font-weight:600; font-size:11.5px; }
+  tr:nth-child(even) td { background:var(--bg); }
+  td code { background:#fff; }
+
+  /* ── Callouts ── */
+  .note,.warn,.tip { border-radius:8px; padding:12px 16px; margin:12px 0; font-size:12.5px; border-left:4px solid; }
+  .note { background:#eff6ff; border-color:var(--sky); }
+  .warn { background:#fefce8; border-color:#ca8a04; }
+  .tip  { background:#f0fdf4; border-color:#16a34a; }
+  .note b,.warn b,.tip b { display:block; margin-bottom:3px; }
+
+  /* ── Status pills ── */
+  .s200 { display:inline-block; background:#dcfce7; color:var(--green); font-weight:700; font-size:11px; padding:2px 8px; border-radius:4px; }
+  .s401 { display:inline-block; background:#fee2e2; color:var(--red); font-weight:700; font-size:11px; padding:2px 8px; border-radius:4px; }
+  .s404 { display:inline-block; background:#fef3c7; color:#92400e; font-weight:700; font-size:11px; padding:2px 8px; border-radius:4px; }
+  .s503 { display:inline-block; background:#f1f5f9; color:#475569; font-weight:700; font-size:11px; padding:2px 8px; border-radius:4px; }
+
+  .two-col { display:flex; gap:16px; }
+  .two-col > div { flex:1; }
+
+  .footer { margin-top:32px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--muted); display:flex; justify-content:space-between; }
+
+  @page { margin:12mm 0; }
+  @media print { .cover { height:247mm; } }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="confidential">Confidential</div>
+  <div class="brand">✈ ALBANIA <span>SKY</span></div>
+  <div class="kicker">Partner Integration</div>
+  <h1>Flight Pricing API</h1>
+  <div class="sub">Technical reference for accessing real-time, agency-specific flight prices and seat availability from the Albania Sky inventory system.</div>
+  <div class="meta">
+    <div><b>Issued to: TRAVEL AGENCY 771</b></div>
+    <div>albaniasky.com · API v1 · June 2026</div>
+  </div>
+</section>
+
+<!-- PAGE 1 — Overview + Auth -->
+<section class="page page-break">
+
+  <h2 class="sec"><span class="sec-badge">01</span> Overview</h2>
+  <p>The Albania Sky Partner API gives your system real-time, read-only access to all available flights and their <strong>agency-specific prices</strong>. Every price returned is the exact price your agency pays — with any agreed discount already applied.</p>
+
+  <div class="note">
+    <b>What this API provides</b>
+    Live flight inventory (airline, route, dates, times) · Agency-adjusted adult / child / infant prices · Exact available seat count · Checked baggage prices · Automatic price updates when Albania Sky changes a price or your discount terms.
+  </div>
+
+  <h3>Base URL</h3>
+  <div class="url-pill">https://albaniasky.com/api</div>
+  <p>All requests go to this base URL. The API communicates exclusively over <strong>HTTPS</strong>. All responses are <strong>JSON</strong> (Content-Type: application/json).</p>
+
+  <h2 class="sec" style="margin-top:32px;"><span class="sec-badge">02</span> Authentication</h2>
+  <p>Every request must include your unique <strong>API key</strong>. Include it as an HTTP header:</p>
+  <pre><span class="token-comment"># HTTP Header (recommended)</span>
+X-API-Key: YOUR_API_KEY
+
+<span class="token-comment"># Alternative: Bearer token</span>
+Authorization: Bearer YOUR_API_KEY</pre>
+
+  <div class="api-key-box">
+    <div class="label">Your API Key — TRAVEL AGENCY 771</div>
+    <div class="key">ask_e882eecf3cfc9d5ac605501315b9f46795337e08c27a50e23f22a1bf15e46db7</div>
+  </div>
+
+  <div class="warn">
+    <b>Keep this key confidential.</b>
+    Do not commit it to public source code repositories or share it publicly. Anyone who holds this key can read your agency's pricing. Contact Albania Sky immediately if you believe the key has been compromised — it can be revoked and reissued.
+  </div>
+
+</section>
+
+<!-- PAGE 2 — Endpoints -->
+<section class="page page-break">
+
+  <h2 class="sec"><span class="sec-badge">03</span> Endpoints</h2>
+
+  <!-- LIST -->
+  <h3>3.1 List Available Flights</h3>
+  <div class="url-pill"><span class="method get">GET</span>/v1/agent/flights</div>
+  <p>Returns all currently available flights with your agency-specific prices applied. Results are ordered by departure date and time. Only flights with at least one available seat are returned.</p>
+
+  <h4>Query Parameters (all optional)</h4>
+  <table>
+    <tr><th>Parameter</th><th>Type</th><th>Example</th><th>Description</th></tr>
+    <tr><td><code>from</code></td><td>string</td><td><code>TIA</code></td><td>Filter by origin IATA airport code (case-insensitive).</td></tr>
+    <tr><td><code>to</code></td><td>string</td><td><code>LGW</code></td><td>Filter by destination IATA airport code (case-insensitive).</td></tr>
+    <tr><td><code>date</code></td><td>string</td><td><code>2026-07-20</code></td><td>Filter by exact departure date (YYYY-MM-DD format).</td></tr>
+  </table>
+
+  <h4>Example Request</h4>
+  <pre><span class="token-comment"># All available flights</span>
+GET https://albaniasky.com/api/v1/agent/flights
+X-API-Key: ask_e882eecf3cfc9d5ac605501315b9f46795337e08c27a50e23f22a1bf15e46db7
+
+<span class="token-comment"># Flights from Tirana to London on 20 July 2026</span>
+GET https://albaniasky.com/api/v1/agent/flights?from=TIA&amp;to=LGW&amp;date=2026-07-20
+X-API-Key: ask_e882eecf3cfc9d5ac605501315b9f46795337e08c27a50e23f22a1bf15e46db7</pre>
+
+  <br/>
+
+  <!-- SINGLE -->
+  <h3>3.2 Get Single Flight</h3>
+  <div class="url-pill"><span class="method get">GET</span>/v1/agent/flights/:id</div>
+  <p>Returns a single flight by its numeric ID with your agency-specific price applied.</p>
+
+  <h4>Example Request</h4>
+  <pre>GET https://albaniasky.com/api/v1/agent/flights/5001
+X-API-Key: ask_e882eecf3cfc9d5ac605501315b9f46795337e08c27a50e23f22a1bf15e46db7</pre>
+
+</section>
+
+<!-- PAGE 3 — Response Format -->
+<section class="page page-break">
+
+  <h2 class="sec"><span class="sec-badge">04</span> Response Format</h2>
+
+  <h3>4.1 List response (GET /v1/agent/flights)</h3>
+  <pre>{
+  <span class="token-key">"count"</span>: <span class="token-num">12</span>,                        <span class="token-comment">// total flights returned</span>
+  <span class="token-key">"currency"</span>: <span class="token-str">"EUR"</span>,
+  <span class="token-key">"agency"</span>: <span class="token-str">"TRAVEL AGENCY 771"</span>,
+  <span class="token-key">"generated_at"</span>: <span class="token-str">"2026-07-01T08:30:00.000Z"</span>,
+  <span class="token-key">"flights"</span>: [ <span class="token-comment">/* array of flight objects — see 4.2 */</span> ]
+}</pre>
+
+  <h3>4.2 Flight object</h3>
+  <pre>{
+  <span class="token-key">"id"</span>: <span class="token-num">5001</span>,
+  <span class="token-key">"airline"</span>: <span class="token-str">"WIZZ AIR"</span>,
+  <span class="token-key">"flight_number"</span>: <span class="token-str">"W6 4764"</span>,
+  <span class="token-key">"from"</span>: <span class="token-str">"TIA"</span>,              <span class="token-comment">// IATA code</span>
+  <span class="token-key">"from_city"</span>: <span class="token-str">"Tirana"</span>,
+  <span class="token-key">"to"</span>: <span class="token-str">"LGW"</span>,
+  <span class="token-key">"to_city"</span>: <span class="token-str">"London Gatwick"</span>,
+  <span class="token-key">"departure_date"</span>: <span class="token-str">"2026-07-20"</span>,    <span class="token-comment">// YYYY-MM-DD</span>
+  <span class="token-key">"departure_time"</span>: <span class="token-str">"06:30"</span>,          <span class="token-comment">// HH:MM local time</span>
+  <span class="token-key">"arrival_date"</span>: <span class="token-str">"2026-07-20"</span>,
+  <span class="token-key">"arrival_time"</span>: <span class="token-str">"09:00"</span>,
+  <span class="token-key">"currency"</span>: <span class="token-str">"EUR"</span>,
+  <span class="token-key">"price_adult"</span>: <span class="token-num">89.00</span>,           <span class="token-comment">// agency price — discount already applied</span>
+  <span class="token-key">"price_child"</span>: <span class="token-num">60.00</span>,           <span class="token-comment">// child age 2–11</span>
+  <span class="token-key">"price_infant"</span>: <span class="token-num">20.00</span>,          <span class="token-comment">// infant under 2</span>
+  <span class="token-key">"tax"</span>: <span class="token-num">0.00</span>,                  <span class="token-comment">// taxes/fees (already included in price above)</span>
+  <span class="token-key">"available_seats"</span>: <span class="token-num">12</span>,          <span class="token-comment">// exact number of seats still available</span>
+  <span class="token-key">"baggage"</span>: {
+    <span class="token-key">"cabin_kg"</span>: <span class="token-null">null</span>,            <span class="token-comment">// cabin bag allowance in kg (null = not set)</span>
+    <span class="token-key">"checked_count"</span>: <span class="token-num">1</span>,         <span class="token-comment">// number of checked bags included</span>
+    <span class="token-key">"checked_kg"</span>: <span class="token-num">20</span>,           <span class="token-comment">// checked bag weight in kg</span>
+    <span class="token-key">"checked_price"</span>: <span class="token-num">50.00</span>      <span class="token-comment">// price for checked baggage add-on (EUR)</span>
+  },
+  <span class="token-key">"discount_applied"</span>: <span class="token-null">null</span>,       <span class="token-comment">// or {"type":"percent","percent":10,"fixed":null}</span>
+  <span class="token-key">"status"</span>: <span class="token-str">"open"</span>,
+  <span class="token-key">"updated_at"</span>: <span class="token-str">"2026-07-01T07:00:00.000Z"</span>
+}</pre>
+
+  <h3>4.3 Field reference</h3>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+    <tr><td><code>price_adult</code></td><td>number</td><td>Final agency price for one adult — your discount already deducted.</td></tr>
+    <tr><td><code>price_child</code></td><td>number</td><td>Final agency price for one child (ages 2–11).</td></tr>
+    <tr><td><code>price_infant</code></td><td>number</td><td>Final agency price for one infant (under 2).</td></tr>
+    <tr><td><code>available_seats</code></td><td>integer</td><td>Exact number of unsold seats at the time of the request.</td></tr>
+    <tr><td><code>baggage.checked_price</code></td><td>number|null</td><td>Cost to add checked baggage, if applicable. <code>null</code> = not offered.</td></tr>
+    <tr><td><code>discount_applied</code></td><td>object|null</td><td>Describes the discount deducted from the base price. <code>null</code> = no discount active.</td></tr>
+    <tr><td><code>updated_at</code></td><td>ISO 8601 string</td><td>Last time this flight record was updated on Albania Sky's system.</td></tr>
+  </table>
+
+</section>
+
+<!-- PAGE 4 — Errors + Notes -->
+<section class="page page-break">
+
+  <h2 class="sec"><span class="sec-badge">05</span> Error Responses</h2>
+  <p>All errors return a JSON body with an <code>error</code> field.</p>
+
+  <table>
+    <tr><th>HTTP Status</th><th>Meaning</th><th>Example body</th></tr>
+    <tr>
+      <td><span class="s401">401 Unauthorized</span></td>
+      <td>API key missing or invalid.</td>
+      <td><code>{"error":"Invalid API key"}</code></td>
+    </tr>
+    <tr>
+      <td><span class="s401">403 Forbidden</span></td>
+      <td>Agency account is inactive.</td>
+      <td><code>{"error":"Agency account is not active"}</code></td>
+    </tr>
+    <tr>
+      <td><span class="s404">404 Not Found</span></td>
+      <td>Flight ID does not exist or is no longer available.</td>
+      <td><code>{"error":"Flight not found"}</code></td>
+    </tr>
+    <tr>
+      <td><span class="s503">503 Service Unavailable</span></td>
+      <td>Temporary server issue — retry after a few seconds.</td>
+      <td><code>{"error":"..."}</code></td>
+    </tr>
+  </table>
+
+  <h2 class="sec" style="margin-top:30px;"><span class="sec-badge">06</span> Pricing &amp; Discount Notes</h2>
+
+  <ul>
+    <li><strong>Prices are final agency prices.</strong> The values in <code>price_adult</code>, <code>price_child</code>, and <code>price_infant</code> already reflect any discount agreed with Albania Sky. You do not need to apply any further calculation.</li>
+    <li><strong>Prices update automatically.</strong> Whenever Albania Sky changes a base price or adjusts your agency's discount terms, the next API call will return the new values with no integration work required on your side.</li>
+    <li><strong>Currency is always EUR.</strong></li>
+    <li><strong>Seat count is real-time.</strong> <code>available_seats</code> reflects the exact unsold seat count at the moment of the request. Seats sold through any channel reduce this count immediately.</li>
+    <li><strong>Only open flights are returned.</strong> Flights that are sold out, closed, or past their departure date are excluded automatically.</li>
+  </ul>
+
+  <h2 class="sec" style="margin-top:30px;"><span class="sec-badge">07</span> Quick-start Code Examples</h2>
+
+  <div class="two-col">
+    <div>
+      <h4>Python</h4>
+      <pre>import requests
+
+API_KEY = "REPLACE_WITH_YOUR_VALUE"
+BASE = "https://albaniasky.com/api"
+
+r = requests.get(
+    f"{BASE}/v1/agent/flights",
+    params={"from": "TIA", "to": "LGW",
+            "date": "2026-07-20"},
+    headers={"X-API-Key": API_KEY}
+)
+flights = r.json()["flights"]
+print(f"{len(flights)} flights found")</pre>
+    </div>
+    <div>
+      <h4>JavaScript / Node.js</h4>
+      <pre>const API_KEY = "REPLACE_WITH_YOUR_VALUE";
+const BASE = "https://albaniasky.com/api";
+
+const res = await fetch(
+  `${BASE}/v1/agent/flights?from=TIA&to=LGW`,
+  { headers: { "X-API-Key": API_KEY } }
+);
+const { flights } = await res.json();
+console.log(`${flights.length} flights`);</pre>
+    </div>
+  </div>
+
+  <h4>curl</h4>
+  <pre>curl -s \
+  -H "X-API-Key: ask_e882eecf3cfc9d5ac605501315b9f46795337e08c27a50e23f22a1bf15e46db7" \
+  "https://albaniasky.com/api/v1/agent/flights?from=TIA&amp;to=LGW&amp;date=2026-07-20"</pre>
+
+  <h2 class="sec" style="margin-top:30px;"><span class="sec-badge">08</span> Contact &amp; Support</h2>
+  <p>For technical questions, key rotation, or integration support, contact the Albania Sky team:</p>
+  <div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-top:10px;">
+    <div style="font-size:17px;font-weight:800;color:var(--navy);">✈ Albania Sky</div>
+    <div style="color:var(--muted);margin-top:4px;">albaniasky.com</div>
+  </div>
+
+  <div class="footer">
+    <span>Albania Sky · Partner Flight Pricing API · v1 · June 2026</span>
+    <span>Confidential — issued to TRAVEL AGENCY 771 only</span>
+  </div>
+
+</section>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!doctype html><html lang="sq"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Albania Sky — API për chatbot-in NESTI</title>
+<style>body{font:16px/1.65 system-ui;color:#17283c;background:#eef1f5;margin:0;padding:32px}main{max-width:980px;margin:auto;background:white;padding:42px;border-radius:12px}h1,h2{color:#143657}h2{margin-top:34px}pre{background:#10283f;color:#eaf3fb;padding:22px;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}table{border-collapse:collapse;width:100%}td,th{padding:11px;border-bottom:1px solid #dce3eb;text-align:left}aside{padding:18px;background:#edf5fc;border-left:4px solid #2371a9}a{color:#15649d}code{font-size:14px}@media(max-width:600px){body{padding:10px}main{padding:20px}}</style>
+<main><p>ALBANIA SKY · REST API · v1.0.0</p><h1>Kërkim fluturimesh për KINGS NESTI</h1>
+<aside>Vetëm lexim. Për bot Node.js në Render që përdor Claude. Nuk kërkohet MCP. API-ja e partnerëve është e veçantë dhe nuk ndryshohet.</aside>
+<h2>1. Endpoint dhe autentikimi</h2>
+<pre>POST https://albaniasky.com/api/chatbot/v1/flights/search
+Content-Type: application/json
+Authorization: Bearer YOUR_DEDICATED_KEY</pre>
+<p>Administratori hyn në panelin e brendshëm në të njëjtin domain, pastaj hap <a href="https://albaniasky.com/api/chatbot/admin">menaxhimin e çelësit</a>. Nëse paneli i brendshëm përdoret te kingsmanagment.com, hapni <a href="https://kingsmanagment.com/api/chatbot/admin">menaxhimin në atë domain</a>. Çelësi shfaqet vetëm kur krijohet. Në databazë ruhet vetëm hash-i. Krijimi i një çelësi të ri çaktivizon të vjetrin; butoni i çaktivizimit e revokon.</p>
+<p>Vendoseni në Render si sekret <b>ALBANIA_SKY_API_KEY</b>. Mos e vendosni në GitHub, query string, frontend apo prompt-in e Claude. Claude prodhon parametrat; vetëm serveri Node shton header-in.</p>
+<h2>2. Parametrat</h2>
+<table><tr><th>Fusha</th><th>Rregulli</th></tr>
+<tr><td>from / to</td><td>Të detyrueshme; kode aeroportesh IATA me 3 shkronja të mëdha, p.sh. TIA, BGY. Aeroporte, jo qytete. Nuk mund të jenë të njëjta.</td></tr>
+<tr><td>departure_date</td><td>E detyrueshme; YYYY-MM-DD, datë jo në të kaluarën sipas Europe/Tirane.</td></tr>
+<tr><td>return_date</td><td>Opsionale; datë ≥ nisjes. Kërkon drejtimin e kundërt. Dy segmente të pavarura, jo biletë e garantuar vajtje–ardhje.</td></tr>
+<tr><td>adults</td><td>Numër i plotë 1–9; default 1.</td></tr>
+<tr><td>children</td><td>Numër i plotë ≥0; default 0. Adults + children ≤9.</td></tr>
+<tr><td>infants</td><td>Numër i plotë ≥0; default 0; jo më shumë se të rriturit. Nuk zënë vend.</td></tr>
+<tr><td>currency</td><td>Vetëm EUR; default EUR. Nuk bëhet konvertim valutor.</td></tr>
+</table><p>Fushat e panjohura refuzohen, përfshirë agent_id. Agjencia caktohet nga kredenciali, jo nga boti.</p>
+<h2>3. Shembull kërkese</h2>
+<pre>{
+  "from": "TIA",
+  "to": "BGY",
+  "departure_date": "2027-01-15",
+  "adults": 1,
+  "children": 0,
+  "infants": 0,
+  "currency": "EUR"
+}</pre>
+<h2>4. Shembull përgjigjeje</h2><p><b>Ilustrim i strukturës, jo ofertë reale apo disponueshmëri e garantuar.</b></p>
+<pre>{
+  "agency": "KINGS NESTI",
+  "currency": "EUR",
+  "generated_at": "2026-10-31T16:00:00.000Z",
+  "request": {
+    "from": "TIA", "to": "BGY", "departure_date": "2027-01-15",
+    "adults": 1, "children": 0, "infants": 0, "currency": "EUR"
+  },
+  "outbound": [{
+    "id": 12345,
+    "airline": "WIZZ AIR",
+    "flight_number": "W45015",
+    "from": "TIA", "to": "BGY",
+    "departure_date": "2027-01-15", "departure_time": "13:00",
+    "arrival_date": "2027-01-15", "arrival_time": "15:00",
+    "time_zone": "Europe/Tirane",
+    "available_seats": 8,
+    "pricing": {
+      "currency": "EUR", "basis": "agency_portal",
+      "adult_ticket": 143, "child_ticket": 143, "infant_ticket": 25,
+      "tax_per_passenger": 5,
+      "tickets_total": 143, "taxes_total": 5, "total": 148,
+      "extras_included": false
+    },
+    "baggage": {
+      "cabin_kg": 10, "checked_count": 1,
+      "checked_kg": 20, "checked_price": 60
+    }
+  }],
+  "inbound": [],
+  "notice": "Live availability, not a reservation or guaranteed fare. Extras are not included. Round trips are independent segments."
+}</pre>
+<h2>5. Çfarë çmimi t'i tregojë boti klientit?</h2>
+<p><b>pricing.total</b> është çmimi për të gjithë pasagjerët e kërkesës për atë segment, përfshirë taksën dhe pa shtesat opsionale. Zbatohen të njëjtat rregulla, ulje, markup, oferta të kanalit të agjentëve dhe rrumbullakim si në portalin e NESTI-t. Nuk është çmim neto administratori dhe nuk është automatikisht një çmim tjetër publik.</p>
+<ul><li>Mos shtoni përsëri markup-in apo zbritjen e NESTI-t: janë llogaritur.</li>
+<li>adult_ticket / child_ticket / infant_ticket janë për person, pa taksën e veçuar.</li>
+<li>tickets_total = adults × adult_ticket + children × child_ticket + infants × infant_ticket.</li>
+<li>taxes_total = të gjithë pasagjerët, përfshirë foshnjat, × tax_per_passenger.</li>
+<li>total = tickets_total + taxes_total. Për vajtje–ardhje mblidhen totalet e dy fluturimeve të zgjedhura; mos mblidhni të gjitha alternativat.</li>
+<li>Bagazhi i regjistruar me checked_price &gt; 0 është pagesë shtesë. null do të thotë e papërcaktuar, jo falas. Mos premtoni përmasa ose përfshirje që nuk i jep përgjigjja.</li>
+<li>Orët dhe datat përdorin konventën e sistemit Europe/Tirane. Mos i interpretoni si UTC ose si orë lokale të çdo aeroporti.</li></ul>
+<h2>6. Aksesi dhe freskia</h2>
+<p>Rezultatet respektojnë grupin dhe përjashtimet e NESTI-t, statusin Open, afatin e shitjes, bllokimin e shitjeve të jashtme dhe vendet e lira për adults + children. Ndryshimet e lejeve lexohen në kërkesën tjetër. Çmimet lexohen nga sistemi; ky endpoint nuk nxit kërkime të reja në Google. Nuk bllokon vende dhe nuk rezervon asgjë. Bëni kërkim të ri para se të konfirmoni një çmim te klienti.</p>
+<p>outbound: [] do të thotë se nuk ka rezultate të lejuara për kërkesën; jo se të gjitha fluturimet e linjës janë anuluar. inbound: [] është normale pa datë kthimi ose kur nuk ka rezultate kthimi.</p>
+<h2>7. Gabimet dhe kufijtë</h2>
+<table><tr><th>HTTP</th><th>Kuptimi</th></tr>
+<tr><td>400</td><td>INVALID_REQUEST — kontrolloni parametrat; mos riprovoni të njëjtën kërkesë.</td></tr>
+<tr><td>401</td><td>UNAUTHORIZED — çelës i pavlefshëm, mungon ose është revokuar.</td></tr>
+<tr><td>403</td><td>AGENCY_UNAVAILABLE — agjencia joaktive ose pa grup aksesi.</td></tr>
+<tr><td>429</td><td>RATE_LIMITED / BUSY — prisni sekondat e Retry-After.</td></tr>
+<tr><td>503</td><td>SEARCH_UNAVAILABLE — problem teknik; mos e paraqitni si “nuk ka fluturime”. Riprovoni më vonë.</td></tr></table>
+<pre>{"error":{"code":"INVALID_REQUEST","message":"Only EUR is supported"}}</pre>
+<p>30 kërkesa/minutë për kredencial, maksimumi 2 kërkime njëkohësisht. Mbrojtja e autentikimit lejon gjithsej 300 tentativa/minutë. Kufijtë janë për proces serveri, me dritare fikse dhe rivendosen pas rinisjes. Kërkesat e autentikuara por të pavlefshme numërohen në kufi. Gabimet nga proxy ose JSON i dëmtuar mund të kenë format tjetër; kontrolloni gjithmonë statusin HTTP.</p>
+<h2>8. Shembull Node.js (Node 20+)</h2>
+<pre>export async function searchFlights(params) {
+  const key = process.env.ALBANIA_SKY_API_KEY;
+  if (!key) throw new Error("Missing ALBANIA_SKY_API_KEY");
+  const response = await fetch(
+    "https://albaniasky.com/api/chatbot/v1/flights/search",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + key
+      },
+      body: JSON.stringify(params),
+      signal: AbortSignal.timeout(20000)
+    }
+  );
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(body?.error?.message || "Flight search failed");
+    error.status = response.status;
+    error.retryAfter = response.headers.get("retry-after");
+    throw error;
+  }
+  return body;
+}
+
+const results = await searchFlights({
+  from: "TIA", to: "BGY", departure_date: "2027-01-15",
+  adults: 1, children: 0, infants: 0, currency: "EUR"
+});</pre>
+<p>Jepini Claude vetëm rezultatet e nevojshme për përgjigjen, jo çelësin apo headers. Mos shpikni fluturime kur API dështon. Nuk ka endpoint për krijim rezervimesh ose pagesash.</p>
+<h2>9. OpenAPI për zhvilluesin</h2>
+<p><a href="https://albaniasky.com/api/chatbot/openapi.json">Specifikimi OpenAPI 3.0.3 — JSON</a>. Dokumenti nuk përmban kredenciale.</p>
+</main></html>

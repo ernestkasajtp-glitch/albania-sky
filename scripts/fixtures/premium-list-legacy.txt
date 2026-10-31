@@ -1,0 +1,181 @@
+function legacyPremiumSelection(allBookings: any[]) {
+  // Kërkimi tekstual (kutia kryesore + PNR + fluturim) i ndarë nga scope/data,
+  // që kërkimi të bëhet GLOBAL (anashkalon datë/agjent/status) kur përdoruesi kërkon.
+  const hasTextSearch = !!(search.trim() || pnrSearch.trim() || flightSearch.trim());
+  const matchesTextSearch = useCallback((b: any) => {
+    if (search && !bookingMatchesSearch(b, search)) return false;
+    if (pnrSearch) {
+      const q = pnrSearch.toLowerCase();
+      if (!bookingPnrList(b).some(p => p.toLowerCase().includes(q))) return false;
+    }
+    if (flightSearch) {
+      const q = flightSearch.toLowerCase().trim();
+      const f = b.flight;
+      if (!f) return false;
+      // Sintaksa e rrugës: "MXP-TIA" (edhe "MXP > TIA" / "MXP→TIA") — nisja DHE mbërritja bashkë
+      const route = q.match(/^([a-zçë]{2,4})\s*[-–—>→\/]\s*([a-zçë]{2,4})$/);
+      if (route) {
+        const hit2 = (f.fromCity?.toLowerCase().includes(route[1]) ?? false) &&
+                     (f.toCity?.toLowerCase().includes(route[2]) ?? false);
+        if (!hit2) return false;
+      } else {
+        const hit =
+          f.flightNumber?.toLowerCase().includes(q) ||
+          f.airline?.toLowerCase().includes(q) ||
+          f.fromCity?.toLowerCase().includes(q) ||
+          f.toCity?.toLowerCase().includes(q);
+        if (!hit) return false;
+      }
+    }
+    return true;
+  }, [search, pnrSearch, flightSearch]);
+
+  const statsBookings = useMemo(() => {
+    return (allBookings as any[]).filter(b => {
+      if (statusFilter && b.status !== statusFilter) return false;
+      if (agentFilter.length && !agentFilter.includes(String(b.agentId))) return false;
+      return matchesTextSearch(b);
+    });
+  }, [allBookings, matchesTextSearch, statusFilter, agentFilter]);
+
+  // `bookings` = lista që shfaqet poshtë (dhe ushqen kartat).
+  // KUR KA KËRKIM: kërkimi është GLOBAL — kërkon në GJITHË sistemin, duke
+  // anashkaluar filtrat e datës/agjentit/statusit. (Kërkesë: çdo gjë e ruajtur
+  // duhet të dalë kur e kërkon, pa u kufizuar nga filtrat e tjerë.)
+  // KUR S'KA KËRKIM: zbatohet scope (status/agjent) + filtri i datës mbi createdAt.
+  const bookingsPreEmail = useMemo(() => {
+    if (hasTextSearch) return (allBookings as any[]).filter(matchesTextSearch);
+    if (!dateFrom && !dateTo) return statsBookings;
+    return (statsBookings as any[]).filter((b: any) => {
+      const createdISO = b.createdAt ? format(new Date(b.createdAt), "yyyy-MM-dd") : "";
+      if (!createdISO) return false;
+      if (dateFrom && createdISO < dateFrom) return false;
+      if (dateTo && createdISO > dateTo) return false;
+      return true;
+    });
+  }, [hasTextSearch, allBookings, matchesTextSearch, statsBookings, dateFrom, dateTo]);
+
+  // Numërimi për çdo status — GJITHMONË mbi TOTALIN e sistemit ("Të gjitha"),
+  // pa u ndikuar nga filtri i statusit, datës apo agjentit.
+  const statusCounts = useMemo(() => {
+    const c: Record<string, number> = { draft: 0, pending: 0, confirmed: 0, ticketed: 0, cancelled: 0 };
+    for (const b of allBookings as any[]) if (c[b.status] !== undefined) c[b.status]++;
+    return c;
+  }, [allBookings]);
+
+  // Numërimi me/pa biletë-nga-emaili — GJITHMONË mbi TOTALIN e sistemit,
+  // pa u ndikuar nga filtrat e datës (sot/7 ditë/30 ditë/manual), statusit apo agjentit.
+  const emailTicketCounts = useMemo(() => {
+    let withEmail = 0, withoutEmail = 0;
+    for (const b of allBookings as any[]) {
+      const st = ticketEmailState(b);
+      if (st === "with") withEmail++;
+      else if (st === "without") withoutEmail++;
+    }
+    return { withEmail, withoutEmail };
+  }, [allBookings]);
+
+  // Numri i rezervimeve me njoftim ndryshimi fluturimi (gjithë sistemi)
+  const alertCount = useMemo(
+    () => (allBookings as any[]).filter((b: any) => Number(b.emailAlertsCount) > 0).length,
+    [allBookings]
+  );
+  const unsentTicketCount = useMemo(
+    () => (allBookings as any[]).filter((b: any) => b.status === "ticketed" && b.ticketEmailPending === true).length,
+    [allBookings],
+  );
+
+  // Kur një numërues është aktiv, lista shfaq TË GJITHA ato rezervime nga i gjithë
+  // sistemi (anashkalon datë/status/agjent, njësoj si kërkimi global) — kështu
+  // numri i chip-it përputhet gjithmonë me listën. Kërkimi tekstual respektohet.
+  const bookings = useMemo(() => {
+    // Filtri financiar pa një status të zgjedhur kërkon në gjithë historikun dhe
+    // në të gjitha statuset. Agjencitë e zgjedhura vazhdojnë të respektohen.
+    const paymentBase = paymentFilter && !statusFilter
+      ? (allBookings as any[])
+          .filter(matchesTextSearch)
+          .filter((b: any) => b.status !== "cancelled")
+          .filter((b: any) => !agentFilter.length || agentFilter.includes(String(b.agentId)))
+      : bookingsPreEmail;
+    let list: any[] = emailTicketFilter
+      ? (allBookings as any[])
+          .filter(matchesTextSearch)
+          .filter((b: any) => ticketEmailState(b) === emailTicketFilter)
+      : paymentBase;
+    if (alertFilter) {
+      // "Me njoftim" — global (si chip-at e emailit): gjithë sistemi, respekton kërkimin tekstual
+      if (!emailTicketFilter) list = (allBookings as any[]).filter(matchesTextSearch);
+      list = list.filter((b: any) =>
+        alertFilter === "with" ? Number(b.emailAlertsCount) > 0 : !(Number(b.emailAlertsCount) > 0)
+      );
+    }
+    if (unsentTicketFilter) {
+      if (!emailTicketFilter && !alertFilter) list = (allBookings as any[]).filter(matchesTextSearch);
+      list = list.filter((b: any) => b.status === "ticketed" && b.ticketEmailPending === true);
+    }
+    if (paymentFilter) {
+      list = list.filter((b: any) => {
+        const paid = Number(b.paidAmount ?? 0);
+        const due = dueEuro(b.dueAmount);
+        if (paymentFilter === "paid") return paid > 0 && due <= 0;
+        if (paymentFilter === "partial") return paid > 0 && due > 0;
+        return paid <= 0;
+      });
+    }
+    // Data e fluturimit zbatohet GJITHMONË (edhe mbi kërkimin global)
+    if (flightDateFrom || flightDateTo) list = list.filter((b: any) => {
+      const departure = b.flight?.departureDate;
+      return !!departure && (!flightDateFrom || departure >= flightDateFrom) && (!flightDateTo || departure <= flightDateTo);
+    });
+    return list;
+  }, [bookingsPreEmail, emailTicketFilter, unsentTicketFilter, alertFilter, paymentFilter, statusFilter, agentFilter, allBookings, matchesTextSearch, flightDateFrom, flightDateTo]);
+
+  // ── Renditja e listës SË PLOTË të filtruar (para ndarjes në faqe) ──────────
+  const sortedBookings = useMemo(() => {
+    if (!sortBy) return bookings; // default: renditja e serverit (më të rejat lart)
+    const STATUS_RANK: Record<string, number> = { draft: 0, pending: 1, confirmed: 2, ticketed: 3, cancelled: 4 };
+    const clientNameOf = (b: any) => {
+      const px = (b.passengers || []).find((x: any) => x.type !== "infant") || (b.passengers || [])[0];
+      return (px ? `${px.firstName} ${px.lastName}`.trim() : b.customerName) || "";
+    };
+    const val = (b: any): string | number => {
+      switch (sortBy) {
+        case "date":      return b.createdAt || "";
+        case "ref":       return b.bookingRef || "";
+        case "pnr":       return bookingPnrList(b).join(" / ");
+        case "klienti":   return clientNameOf(b).toLocaleLowerCase();
+        case "agjencia":  return (b.agentName || "").toLocaleLowerCase();
+        case "fluturimi": return b.flight ? `${b.flight.fromCity ?? ""} ${b.flight.toCity ?? ""}` : "";
+        case "flightDate": return b.flight?.departureDate ?? "";
+        case "flightTime": return b.flight?.departureTime ?? "";
+        case "pax":       return (b.passengers || []).filter((p: any) => p.type !== "infant" && !p.cancelled).length;
+        case "financa":   return Number(b.totalAmount ?? 0);
+        case "neto":      return Number(b.netPrice ?? 0) > 0 ? Number(b.netPrice) : "";
+        case "commission": return Number(b.commissionAmount ?? 0);
+        case "paid":      return Number(b.paidAmount ?? 0);
+        case "due":       return dueEuro(b.dueAmount);
+        case "credit":    return Number(b.creditAmount ?? 0);
+        case "statusi":   return STATUS_RANK[b.status] ?? 99;
+      }
+    };
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...(bookings as any[])].sort((a, b) => {
+      const va = val(a), vb = val(b);
+      // Vlerat bosh gjithmonë në fund, pavarësisht drejtimit
+      const ea = va === "" || va == null, eb = vb === "" || vb == null;
+      if (ea && eb) return 0;
+      if (ea) return 1;
+      if (eb) return -1;
+      if (typeof va === "number" && typeof vb === "number") return (va - vb) * dir;
+      return String(va).localeCompare(String(vb)) * dir;
+    });
+  }, [bookings, sortBy, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedBookings.length / PER_PAGE));
+  const pagedBookings = useMemo(
+    () => sortedBookings.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    [sortedBookings, page]
+  );
+
+  return { sortedBookings, pagedBookings, statusCounts, emailTicketCounts, alertCount, unsentTicketCount, totalPages };
+  }

@@ -1,0 +1,27 @@
+.as-sidebar-passengers .as-sidebar-layout{grid-template-columns:minmax(0,1fr) 360px;gap:28px}
+.as-sidebar-passengers .as-sidebar-heading{margin-bottom:25px}
+.as-sidebar-passengers .as-sidebar-heading h1{font-size:32px}
+.as-sidebar-passengers .as-sidebar-form-title{margin-bottom:0;min-height:27px}
+.as-sidebar-passengers .as-sidebar-column{display:grid;gap:18px;min-width:0}
+.as-sidebar-passengers .as-sidebar-column .as-summary{position:static}
+.as-sidebar-passengers .as-sidebar-flight{padding:24px;overflow:hidden}
+.as-sidebar-passengers .as-sidebar-flight-heading{display:flex;gap:10px;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--as-line)}
+.as-sidebar-passengers .as-sidebar-flight-heading svg{color:var(--as-red)}
+.as-sidebar-passengers .as-sidebar-flight-heading h2{font-size:17px}
+.as-sidebar-passengers .as-sidebar-airline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:19px 0 7px;font-size:13px}
+.as-sidebar-passengers .as-sidebar-airline span{color:var(--as-muted);font-size:12px}
+.as-sidebar-passengers .as-sidebar-date{font-size:12px;color:var(--as-muted)}
+.as-sidebar-passengers .as-sidebar-itinerary{display:grid;grid-template-columns:1fr 50px 1fr;align-items:center;gap:8px;margin:24px 0}
+.as-sidebar-passengers .as-sidebar-airport{display:flex;flex-direction:column;gap:2px}
+.as-sidebar-passengers .as-sidebar-airport:last-child{text-align:right}
+.as-sidebar-passengers .as-sidebar-airport strong{font-size:29px;line-height:1.2;font-weight:600;letter-spacing:-.8px}
+.as-sidebar-passengers .as-sidebar-airport small{font-size:11px;color:var(--as-muted)}
+.as-sidebar-passengers .as-sidebar-airport time{font-size:18px;font-weight:550;margin-top:10px;font-variant-numeric:tabular-nums}
+.as-sidebar-passengers .as-sidebar-route-line{display:flex;align-items:center;gap:4px;color:var(--as-red);align-self:start;margin-top:11px}
+.as-sidebar-passengers .as-sidebar-route-line:before,.as-sidebar-passengers .as-sidebar-route-line:after{content:"";height:1px;flex:1;background:var(--as-line)}
+.as-sidebar-passengers .as-sidebar-route-line svg{width:16px;height:16px}
+.as-sidebar-passengers .as-sidebar-fare{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-top:16px;border-top:1px solid var(--as-line)}
+.as-sidebar-passengers .as-sidebar-fare span{font-size:12px;color:var(--as-muted)}
+.as-sidebar-passengers .as-sidebar-fare strong{font-size:23px;font-weight:600;letter-spacing:-.5px}
+@media(max-width:900px){.as-sidebar-passengers .as-sidebar-layout{grid-template-columns:minmax(0,1fr) 320px;gap:20px}}
+@media(max-width:767px){.as-sidebar-passengers .as-sidebar-layout{grid-template-columns:minmax(0,1fr)}.as-sidebar-passengers .as-sidebar-heading h1{font-size:28px}.as-sidebar-passengers .as-sidebar-flight{padding:22px}}

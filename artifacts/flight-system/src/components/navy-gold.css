@@ -1,0 +1,27 @@
+/* The approved skin is deliberately limited to navigation and statistic icons. */
+.theme-navy-gold aside {
+  background: linear-gradient(180deg, #112343 0%, #0f2040 55%, #0c1f40 100%) !important;
+  border-color: #253552 !important;
+}
+.theme-navy-gold aside > .border-b,
+.theme-navy-gold aside > .border-t { border-color: #253552 !important; }
+.theme-navy-gold aside nav > a { color: #e4e7ee !important; background: transparent !important; }
+.theme-navy-gold aside nav > a > span > svg { color: currentColor !important; stroke-width: 1.8; }
+.theme-navy-gold aside nav > a:hover { background: #1d3051 !important; }
+.theme-navy-gold aside nav > a[data-nav-active="true"] {
+  background: linear-gradient(110deg, #f3d185 0%, #e6c27c 50%, #d8b26f 100%) !important;
+  color: #252c38 !important;
+}
+.theme-navy-gold aside nav > a[data-nav-active="true"] > span.absolute { background-color: #b28b37 !important; }
+.theme-navy-gold aside [class~="text-white/30"],
+.theme-navy-gold aside [class~="text-white/40"] { color: #b8c9df; }
+.theme-navy-gold aside > button {
+  background: #f1f3f6 !important; color: #526078 !important; border-color: #d5dae3 !important;
+}
+.theme-navy-gold aside > button:hover { background: white !important; }
+.theme-navy-gold .navy-stat-icon {
+  background: #fbf5e5; box-shadow: none;
+}
+.theme-navy-gold .navy-stat-icon > svg { color: #684c17; stroke-width: 1.8; }
+.theme-navy-gold .navy-stat-icon[data-kind="pax"] { background: #e4f2fc; }
+.theme-navy-gold .navy-stat-icon[data-kind="pax"] > svg { color: #1475cd; }

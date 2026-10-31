@@ -1,0 +1,29 @@
+.partner-invitation{display:flex;align-items:center;gap:15px;background:#102c49;border-radius:8px;color:#fffdfb;padding:16px 18px;margin:0 0 18px;font-family:"DM Sans",sans-serif}
+.partner-invitation>svg{color:#b8cadb;flex-shrink:0;width:21px;height:21px}
+.partner-invitation>div{flex:1}
+.partner-invitation h2{margin:0 0 3px;font-size:14px;font-weight:600;color:#fffdfb}
+.partner-invitation p{margin:0;font-size:12px;color:#cbd7e3;line-height:1.6}
+.partner-invitation a{display:flex;gap:9px;align-items:center;white-space:nowrap;color:#fff5f7;font-size:13px;font-weight:600;border-bottom:1px solid #e6a7b7;padding:5px 0}
+.partner-airport{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;border:1px solid #ddd9d7;border-radius:7px;padding:12px 13px;background:#fffdfb;color:#898187;font-size:14px;cursor:pointer}
+.partner-airport:hover{border-color:#b18b97}
+.partner-workspace{font-family:"DM Sans",sans-serif;background:#f7f5f3;color:#302d31}
+.partner-tools{max-width:1112px;margin:auto;padding:25px 0;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid #e8e1e3}
+.partner-tools>span{font-size:10px;letter-spacing:1.5px;color:#83747d}
+.partner-tools>div{display:flex;align-items:center;gap:10px;font-size:13px;color:#766772}
+.partner-tools svg{width:18px;height:18px;color:#9d7b89}
+.partner-footnote{max-width:1112px;margin:auto;padding:30px 0 45px;display:flex;align-items:center;justify-content:space-between;gap:25px}
+.partner-footnote h2{font-size:23px;font-weight:500;margin:0 0 6px}
+.partner-footnote p{color:#847781;font-size:13px}
+.partner-footnote a{color:#b5103c;display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:13px;font-weight:600}
+.air-home-shell nav .partner-signin{background:#d71042!important;color:white!important;padding:12px 19px;border-radius:7px;font-weight:600}
+.air-home-shell nav .partner-access{background:transparent!important;border:1px solid #e3d7da;color:#ae1037!important;border-radius:7px;box-shadow:none;padding:11px 16px}
+.partner-brand-label{margin-left:20px;border-left:1px solid #e5dfe0;padding-left:20px;font-size:11px;letter-spacing:1.6px;font-weight:600;color:#746d73}
+.air-home-shell nav .partner-mobile-signin{background:#d71042!important;color:#fffdfb!important;padding:9px 10px;border-radius:7px;font-size:11px;font-weight:600;white-space:nowrap}
+@media(max-width:767px){
+ .partner-invitation{display:grid;grid-template-columns:20px 1fr;gap:9px 12px;padding:15px}
+ .partner-invitation a{grid-column:2;justify-self:start;margin-top:4px}
+ .partner-tools{margin:0 20px;padding:23px 0;flex-wrap:wrap;gap:19px}
+ .partner-tools>span{width:100%}.partner-tools>div{font-size:12px;gap:7px}
+ .partner-footnote{margin:0 20px;padding:25px 0;align-items:start;flex-direction:column;gap:16px}
+ .partner-brand-label{display:none}
+}

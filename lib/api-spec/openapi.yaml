@@ -1,0 +1,3463 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Flight Management System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: pageLayouts
+    description: Per-page layout selection
+  - name: health
+    description: Health operations
+  - name: flights
+    description: Flight inventory
+  - name: bookings
+    description: Flight bookings
+  - name: passengers
+    description: Passenger management
+  - name: payments
+    description: Payment management
+  - name: agents
+    description: B2B agent management
+  - name: reports
+    description: Reports and analytics
+  - name: dashboard
+    description: Dashboard summary
+  - name: assistant
+    description: Read-only AI assistant
+
+paths:
+  /claims:
+    get:
+      operationId: listClaims
+      tags: [claims]
+      parameters:
+        - { name: bookingId, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: search, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: status, in: query, schema: { type: string, enum: [open, in_progress, resolved] } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+      responses:
+        '200':
+          description: Internal FMS claims with linked booking context
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimsPage' }
+    post:
+      operationId: createClaim
+      tags: [claims]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimInput' }
+      responses:
+        '201':
+          description: Created, or replay of an identical request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimRecord' }
+  /claims/{id}:
+    get:
+      operationId: getClaim
+      tags: [claims]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Current Claim, independent of active list filters
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimRecord' }
+        '404': { description: Claim not found }
+    patch:
+      operationId: updateClaim
+      tags: [claims]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimRecord' }
+        '409': { description: Another user changed this claim; reload before saving }
+  /claims/{id}/bookings:
+    post:
+      operationId: linkClaimBooking
+      tags: [claims]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClaimBookingInput' }
+      responses:
+        '200':
+          description: Linked without removing existing booking links
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClaimRecord' }
+  /cp-import-alerts/priority-history:
+    get:
+      operationId: getPriorityHistory
+      tags: [reports]
+      summary: Admin-only persisted PRIORITY historical scan progress
+      responses:
+        '200':
+          description: Last historical scan progress or null if never started
+        '401':
+          description: Sign-in required
+        '403':
+          description: Admin role required
+    post:
+      operationId: startPriorityHistory
+      tags: [reports]
+      summary: Start an admin-only historical scan without changing the live cursor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PriorityHistoryRequest'
+      responses:
+        '202':
+          description: Background scan accepted; GET this endpoint for progress
+        '400':
+          description: Invalid date range, unconfigured mailbox, disabled module or active scan
+        '401':
+          description: Sign-in required
+        '403':
+          description: Admin role required
+  /cp-import-alerts/{id}/retry-email:
+    post:
+      operationId: retryFailedEmail
+      tags: [reports]
+      summary: Admin-only resend of a privately stored failed email
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FailedEmailRetryInput'
+      responses:
+        '200':
+          description: SMTP accepted the email and the alert was resolved
+        '400':
+          description: Invalid request
+        '403':
+          description: Admin role required
+        '404':
+          description: Recovery message unavailable
+        '409':
+          description: Already sent, in progress, or ambiguous outcome requires confirmation
+        '502':
+          description: Retry could not be confirmed; alert remains open
+  /public/payment-report:
+    post:
+      operationId: downloadPortalPaymentReport
+      tags: [reports]
+      summary: Email and download the signed-in agency's payment report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PortalPaymentReportInput'
+      responses:
+        '200':
+          description: PDF report after email submission succeeds
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid report options
+        '401':
+          description: Login required
+        '403':
+          description: Agency account required
+        '422':
+          description: Agency email or report size prevents delivery
+        '429':
+          description: Report is already running or recently sent
+        '502':
+          description: Report generation or email failed
+  /me/booking-columns:
+    get:
+      operationId: getBookingColumnPreferences
+      summary: Get the authenticated FMS user's Premium table default
+      responses:
+        "200":
+          description: Saved columns; null means the original layout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingColumnsInput"
+    put:
+      operationId: saveBookingColumnPreferences
+      summary: Save or reset only the authenticated FMS user's table default
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingColumnsInput"
+      responses:
+        "200":
+          description: Saved preference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingColumnsInput"
+  /admin/enrollments/count:
+    get:
+      operationId: countPublicEnrollments
+      responses:
+        "200":
+          description: Admin-only pending count
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count]
+                properties:
+                  count: { type: integer }
+  /admin/enrollments:
+    get:
+      operationId: listPublicEnrollments
+      responses:
+        "200":
+          description: Admin-only registration review and email delivery states
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublicEnrollment"
+  /admin/enrollments/{id}/approve:
+    post:
+      operationId: approvePublicEnrollment
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PublicEnrollmentApproval" }
+      responses:
+        "200":
+          description: Approved; email outcome is independent from approval
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EnrollmentEmailResult" }
+  /admin/enrollments/{id}/retry-email:
+    post:
+      operationId: retryPublicEnrollmentEmail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EnrollmentEmailRetry" }
+      responses:
+        "200":
+          description: Email delivery result; unknown outcomes must be investigated, not automatically retried
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EnrollmentEmailResult" }
+  /settings/guest-flight-access:
+    get:
+      operationId: getGuestFlightAccess
+      tags: [settings]
+      responses:
+        "200":
+          description: Admin-only selected existing agency group for anonymous flight access; null means no access
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuestFlightPolicy"
+        "403":
+          description: Administrator required
+    put:
+      operationId: saveGuestFlightAccess
+      tags: [settings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GuestFlightPolicy"
+      responses:
+        "200":
+          description: Saved group selection; changes to the group's rules apply immediately
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GuestFlightPolicy"
+        "400":
+          description: Invalid policy
+        "403":
+          description: Administrator required
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ──────────────────────────── FLIGHTS ────────────────────────────
+  /flights:
+    get:
+      operationId: listFlights
+      tags: [flights]
+      summary: List all flights
+      parameters:
+        - in: query
+          name: agencyGroupId
+          description: Internal admin-only group rule filter for inventory; does not affect partner APIs.
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+        - in: query
+          name: to
+          schema:
+            type: string
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+        - in: query
+          name: airline
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of flights
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Flight"
+    post:
+      operationId: createFlight
+      tags: [flights]
+      summary: Create a new flight
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlightBody"
+      responses:
+        "201":
+          description: Created flight
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flight"
+
+  /flights/{id}/discount:
+    put:
+      operationId: setFlightDiscount
+      tags: [flights]
+      summary: Set or remove a channel-scoped flight discount (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - allOf:
+                    - $ref: '#/components/schemas/FlightDiscount'
+                    - type: object
+                      required: [channels]
+                - type: object
+                  required: [discount]
+                  properties:
+                    discount:
+                      type: "null"
+      responses:
+        '200':
+          description: Saved discount
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  flightDiscount:
+                    $ref: '#/components/schemas/FlightDiscount'
+        '400':
+          description: Invalid discount
+        '403':
+          description: Admin only
+        '404':
+          description: Flight not found
+  /flights/{id}:
+    get:
+      operationId: getFlight
+      tags: [flights]
+      summary: Get a flight by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Flight
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flight"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateFlight
+      tags: [flights]
+      summary: Update a flight
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlightBody"
+      responses:
+        "200":
+          description: Updated flight
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flight"
+    delete:
+      operationId: deleteFlight
+      tags: [flights]
+      summary: Delete a flight
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /flights/{id}/duplicate:
+    post:
+      operationId: duplicateFlight
+      tags: [flights]
+      summary: Duplicate a flight
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Duplicated flight
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flight"
+
+  /flights/{id}/toggle-sales:
+    patch:
+      operationId: toggleFlightSales
+      tags: [flights]
+      summary: Open or close sales for a flight
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ToggleFlightSalesBody"
+      responses:
+        "200":
+          description: Updated flight
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flight"
+
+  # ──────────────────────────── BOOKINGS ────────────────────────────
+  /booking-list/query:
+    post:
+      operationId: queryPremiumBookings
+      tags: [bookings]
+      summary: Read-only filtered Premium booking page, summaries, or explicit full export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PremiumBookingListInput"
+      responses:
+        "200":
+          description: A bounded page and full-filter summaries; exportAll returns matching rows only
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "400":
+          description: Invalid filters
+        "401":
+          description: FMS authentication required
+        "403":
+          description: Export permission required
+  /bookings/draft-count:
+    get:
+      operationId: getDraftBookingCount
+      tags: [bookings]
+      summary: Count draft bookings visible to the authenticated FMS session
+      responses:
+        "200":
+          description: Draft count without booking details
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [count]
+                properties:
+                  count:
+                    type: integer
+                    minimum: 0
+        "401":
+          description: FMS authentication required
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List all bookings
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: flightId
+          schema:
+            type: integer
+        - in: query
+          name: agentId
+          schema:
+            type: integer
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingBody"
+      responses:
+        "201":
+          description: Created booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}:
+    get:
+      operationId: getBooking
+      tags: [bookings]
+      summary: Get a booking by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateBooking
+      tags: [bookings]
+      summary: Update a booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBookingBody"
+      responses:
+        "200":
+          description: Updated booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+    delete:
+      operationId: deleteBooking
+      tags: [bookings]
+      summary: Delete/cancel a booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /bookings/{id}/confirm:
+    patch:
+      operationId: confirmBooking
+      tags: [bookings]
+      summary: Confirm a booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Confirmed booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}/status:
+    patch:
+      operationId: updateBookingStatus
+      tags: [bookings]
+      summary: Persist a normal booking status change
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingStatusUpdate"
+      responses:
+        "200":
+          description: Status persisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingStatusResult"
+        "409":
+          description: Invalid status transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bookings/{id}/cancel:
+    patch:
+      operationId: cancelBooking
+      tags: [bookings]
+      summary: Cancel a booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancelled booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}/save:
+    post:
+      operationId: saveWholeBooking
+      tags: [bookings]
+      summary: Atomically save all staged booking changes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestId, version, commands]
+              properties:
+                requestId: { type: string, format: uuid }
+                version: { type: string, pattern: "^[a-f0-9]{64}$" }
+                commands:
+                  type: array
+                  minItems: 1
+                  maxItems: 200
+                  items:
+                    type: object
+                    required: [path, method]
+                    properties:
+                      path: { type: string, maxLength: 120 }
+                      method: { type: string, enum: [POST, PATCH, DELETE] }
+                      body: { type: object, additionalProperties: true }
+      responses:
+        "200":
+          description: All changes and audit records committed, or an idempotent replay
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [results, booking]
+                properties:
+                  results:
+                    type: array
+                    items: { type: object, additionalProperties: true }
+                  booking: { $ref: "#/components/schemas/Booking" }
+        "409":
+          description: Concurrent edit; no changes committed
+  /bookings/{id}/ticket:
+    patch:
+      operationId: ticketBooking
+      tags: [bookings]
+      summary: Mark booking as ticketed
+      description: With Prefer respond-async, returns 202 after saving the ticketed status and history. Email delivery continues separately; ticketEmailPending remains true until confirmed delivery.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ticketed booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "202":
+          description: Ticketed booking saved; email delivery still in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  /bookings/{id}/ticket-without-email:
+    patch:
+      operationId: ticketBookingWithoutEmail
+      tags: [bookings]
+      summary: Mark booking as ticketed without sending the agent email
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ticketed booking with pending agent email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+
+  # ──────────────────────────── PASSENGERS ────────────────────────────
+  /passengers:
+    get:
+      operationId: listPassengers
+      tags: [passengers]
+      summary: List all passengers
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: bookingId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of passengers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Passenger"
+    post:
+      operationId: createPassenger
+      tags: [passengers]
+      summary: Create a passenger
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePassengerBody"
+      responses:
+        "201":
+          description: Created passenger
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passenger"
+
+  /passengers/{id}:
+    get:
+      operationId: getPassenger
+      tags: [passengers]
+      summary: Get a passenger by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Passenger
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passenger"
+    patch:
+      operationId: updatePassenger
+      tags: [passengers]
+      summary: Update a passenger
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePassengerBody"
+      responses:
+        "200":
+          description: Updated passenger
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Passenger"
+    delete:
+      operationId: deletePassenger
+      tags: [passengers]
+      summary: Delete a passenger
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ──────────────────────────── PAYMENTS ────────────────────────────
+  /bookings/{id}/payments:
+    post:
+      operationId: createBookingPayment
+      tags: [payments]
+      summary: Record a manually selected payment for a booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingPaymentInput"
+      responses:
+        "200":
+          description: Booking with payment recorded
+
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List all payments
+      parameters:
+        - in: query
+          name: bookingId
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Create a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentBody"
+      responses:
+        "201":
+          description: Created payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/bulk:
+    post:
+      operationId: createBulkPayment
+      tags: [payments]
+      summary: Record selected-method payments across bookings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkPaymentInput"
+      responses:
+        "201":
+          description: Payments recorded
+
+  /payments/{id}:
+    get:
+      operationId: getPayment
+      tags: [payments]
+      summary: Get a payment by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+    patch:
+      operationId: updatePayment
+      tags: [payments]
+      summary: Update a payment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePaymentBody"
+      responses:
+        "200":
+          description: Updated payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/{id}/refund:
+    patch:
+      operationId: refundPayment
+      tags: [payments]
+      summary: Refund a payment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefundPaymentBody"
+      responses:
+        "200":
+          description: Refunded payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  # ──────────────────────────── AGENTS ────────────────────────────
+  /booking-engine/agency-groups:
+    get:
+      operationId: listAgencyGroups
+      tags: [agents]
+      summary: List agency groups with rules and assignment counts (admin only)
+      responses:
+        "200":
+          description: Agency groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgencyGroup"
+    post:
+      operationId: createAgencyGroup
+      tags: [agents]
+      summary: Create agency group (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        "201":
+          description: Created group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgencyGroup"
+  /booking-engine/agency-groups/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    patch:
+      operationId: updateAgencyGroup
+      tags: [agents]
+      summary: Rename agency group (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        "200":
+          description: Updated group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgencyGroup"
+    delete:
+      operationId: deleteAgencyGroup
+      tags: [agents]
+      summary: Delete group if no agencies assigned (admin only)
+      responses:
+        "204":
+          description: Deleted
+        "409":
+          description: Group has assigned agencies
+  /booking-engine/agency-groups/{id}/rules:
+    post:
+      operationId: createAgencyGroupRule
+      tags: [agents]
+      summary: Add airport and inclusive departure-date rule (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [airport, direction, dateFrom, dateTo]
+              properties:
+                airport:
+                  type: string
+                direction:
+                  type: string
+                  enum: [either, from, to]
+                dateFrom:
+                  type: string
+                  format: date
+                dateTo:
+                  type: string
+                  format: date
+      responses:
+        "201":
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgencyGroupRule"
+  /booking-engine/agency-groups/{id}/rules/{ruleId}:
+    patch:
+      operationId: updateAgencyGroupRule
+      tags: [agents]
+      summary: Change group airport rule and date window (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: ruleId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [airport, direction, dateFrom, dateTo]
+              properties:
+                airport:
+                  type: string
+                direction:
+                  type: string
+                  enum: [either, from, to]
+                dateFrom:
+                  type: string
+                  format: date
+                dateTo:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgencyGroupRule"
+        "404":
+          description: Rule not found in the specified group
+        "409":
+          description: Duplicate rule
+    delete:
+      operationId: deleteAgencyGroupRule
+      tags: [agents]
+      summary: Delete rule from specified group (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: ruleId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /booking-engine/agents/{id}/visibility-context:
+    get:
+      operationId: getAgentVisibilityContext
+      tags: [agents]
+      summary: Read inherited agency access context (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Visibility context
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [groupId, groupName, groupRules, legacyExcluded]
+                properties:
+                  groupId:
+                    type: ["integer", "null"]
+                  groupName:
+                    type: ["string", "null"]
+                  groupRules:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AgencyGroupRule"
+                  legacyExcluded:
+                    type: boolean
+
+  /booking-engine/agents/{id}/group-period:
+    get:
+      operationId: getAgentGroupPeriod
+      tags: [agents]
+      summary: Read this agent's replacement group date window (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Active override, if any, bound to the current group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentGroupPeriod"
+        "400":
+          description: Invalid agent ID
+        "403":
+          description: Admin only
+        "404":
+          description: Agent not found
+    put:
+      operationId: putAgentGroupPeriod
+      tags: [agents]
+      summary: Replace the group rule dates for this agent only, or clear the override (admin only)
+      description: Both dates must be real ordered inclusive ISO calendar dates, or both null to clear. Airports, directions and agent-specific exceptions are unaffected. No group cannot be overridden.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentGroupPeriodInput"
+      responses:
+        "200":
+          description: Current group and replacement date window
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentGroupPeriod"
+        "400":
+          description: Invalid agent ID or dates, or agent has no group
+        "403":
+          description: Admin only
+        "404":
+          description: Agent or group not found
+
+  /agents:
+    get:
+      operationId: listAgents
+      tags: [agents]
+      summary: List all agents
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: dateType
+          description: Date used to filter agent statistics
+          schema:
+            type: string
+            enum: [created, flight]
+            default: created
+        - in: query
+          name: dateFrom
+          description: Inclusive start date for agent statistics
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - in: query
+          name: dateTo
+          description: Inclusive end date for agent statistics
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        "200":
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+    post:
+      operationId: createAgent
+      tags: [agents]
+      summary: Create an agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgentBody"
+      responses:
+        "201":
+          description: Created agent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{id}:
+    get:
+      operationId: getAgent
+      tags: [agents]
+      summary: Get an agent by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Agent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+    patch:
+      operationId: updateAgent
+      tags: [agents]
+      summary: Update an agent
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAgentBody"
+      responses:
+        "200":
+          description: Updated agent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+    delete:
+      operationId: deleteAgent
+      tags: [agents]
+      summary: Delete an agent
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ──────────────────────────── DASHBOARD ────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/passengers-today:
+    get:
+      operationId: getPassengersToday
+      tags: [dashboard]
+      summary: Count of passengers flying in a date range (default today)
+      parameters:
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Passengers flying today
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                required:
+                  - count
+
+  /dashboard/recent-bookings:
+    get:
+      operationId: getRecentBookings
+      tags: [dashboard]
+      summary: Get recent bookings
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /dashboard/unpaid-bookings:
+    get:
+      operationId: getUnpaidBookings
+      tags: [dashboard]
+      summary: Get unpaid bookings
+      responses:
+        "200":
+          description: Unpaid bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  # ──────────────────────────── REPORTS ────────────────────────────
+  /reports/sales:
+    get:
+      operationId: getSalesReport
+      tags: [reports]
+      summary: Get sales report by date range
+      parameters:
+        - in: query
+          name: dateFrom
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: groupBy
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sales report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesReport"
+
+  /reports/route-performance:
+    get:
+      operationId: getRoutePerformance
+      tags: [reports]
+      summary: Get route performance stats
+      parameters:
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Route performance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoutePerformance"
+
+  /reports/agent-sales:
+    get:
+      operationId: getAgentSales
+      tags: [reports]
+      summary: Get agent sales performance
+      parameters:
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent sales
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentSalesReport"
+
+  /reports/detailed-flights:
+    get:
+      operationId: getDetailedFlightsReport
+      tags: [reports]
+      summary: Get detailed performance grouped by route and flight number
+      parameters:
+        - in: query
+          name: dateFrom
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - in: query
+          name: dateTo
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        "400":
+          description: Invalid or reversed date range
+        "403":
+          description: Missing route report permission
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Detailed flights report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedFlightsReport"
+
+  /reports/airline-performance:
+    get:
+      operationId: getAirlinePerformance
+      tags: [reports]
+      summary: Get airline performance stats
+      parameters:
+        - in: query
+          name: dateFrom
+          schema:
+            type: string
+        - in: query
+          name: dateTo
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Airline performance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AirlinePerformance"
+
+  # ──────────────────────────── AI ASSISTANT ────────────────────────────
+  /assistant/query:
+    post:
+      operationId: askAssistant
+      tags: [assistant]
+      summary: Ask about system data or request a confirmation-gated action proposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantQueryInput"
+      responses:
+        "200":
+          description: Assistant answer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantAnswer"
+        "400":
+          description: Invalid question
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: OpenAI is not configured or temporarily unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /assistant/actions/{proposalId}/confirm:
+    post:
+      operationId: confirmAssistantAction
+      tags: [assistant]
+      summary: Confirm and execute a pending AI action proposal
+      parameters:
+        - in: path
+          name: proposalId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Action execution result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantActionResult"
+        "400":
+          description: Invalid or expired proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Proposal belongs to another user or permission denied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Proposal is executing, stale, or already finalized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Action execution result is unavailable or uncertain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /page-layouts:
+    get:
+      operationId: getPublicPageLayouts
+      tags: [pageLayouts]
+      summary: Public read-only per-page layout selections (metadata only)
+      responses:
+        "200":
+          description: Current layout selection per page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicPageLayouts"
+        "503":
+          description: Layout settings unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /settings/page-layouts:
+    get:
+      operationId: getPageLayoutSettings
+      tags: [pageLayouts]
+      summary: Admin view of per-page layout registry and selections
+      responses:
+        "200":
+          description: Registry with selections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageLayoutSettings"
+        "503":
+          description: Layout settings unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /settings/page-layouts/{scope}/{page}:
+    parameters:
+      - name: scope
+        in: path
+        required: true
+        schema: { type: string, enum: [internal, external] }
+      - name: page
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      operationId: setPageLayout
+      tags: [pageLayouts]
+      summary: Activate a ready layout variant for one page
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPageLayoutBody"
+      responses:
+        "200":
+          description: Updated page entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageLayoutEntry"
+        "400":
+          description: Invalid or unavailable variant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Unknown page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: resetPageLayout
+      tags: [pageLayouts]
+      summary: Restore the default layout for one page only
+      responses:
+        "200":
+          description: Restored page entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageLayoutEntry"
+        "404":
+          description: Unknown page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ClaimInput:
+      type: object
+      required: [title, description, bookingId, requestId]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 10000 }
+        bookingId: { type: integer, minimum: 1 }
+        requestId: { type: string, format: uuid }
+    ClaimUpdate:
+      type: object
+      required: [title, description, status, version]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 10000 }
+        status: { type: string, enum: [open, in_progress, resolved] }
+        version: { type: integer, minimum: 1 }
+    ClaimBookingInput:
+      type: object
+      required: [bookingId]
+      properties:
+        bookingId: { type: integer, minimum: 1 }
+    ClaimPassenger:
+      type: object
+      required: [id, firstName, lastName, cancelled]
+      properties:
+        id: { type: integer }
+        firstName: { type: string }
+        lastName: { type: string }
+        cancelled: { type: boolean }
+    ClaimBooking:
+      type: object
+      required: [id, bookingRef, fromCity, toCity, departureDate, flightNumber, passengers]
+      properties:
+        id: { type: integer }
+        bookingRef: { type: string }
+        fromCity: { type: [string, 'null'] }
+        toCity: { type: [string, 'null'] }
+        departureDate: { type: [string, 'null'] }
+        flightNumber: { type: [string, 'null'] }
+        passengers: { type: array, items: { $ref: '#/components/schemas/ClaimPassenger' } }
+    ClaimRecord:
+      type: object
+      required: [id, title, description, status, version, createdAt, updatedAt, bookings]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [open, in_progress, resolved] }
+        version: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        bookings: { type: array, items: { $ref: '#/components/schemas/ClaimBooking' } }
+    ClaimsPage:
+      type: object
+      required: [items, total]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ClaimRecord' } }
+        total: { type: integer }
+    PriorityHistoryRequest:
+      type: object
+      additionalProperties: false
+      required: [from, to]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+    FailedEmailRetryInput:
+      type: object
+      additionalProperties: false
+      properties:
+        confirmUncertain:
+          type: boolean
+          default: false
+    PortalPaymentReportInput:
+      type: object
+      additionalProperties: false
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [full, debt]
+        dateFrom:
+          type: string
+          format: date
+        dateTo:
+          type: string
+          format: date
+    PremiumBookingListInput:
+      type: object
+      properties:
+        page: { type: integer, minimum: 1, maximum: 1000000, default: 1 }
+        exportAll: { type: boolean, default: false }
+        loadAll: { type: boolean, default: false }
+        todayISO: { type: string, pattern: '^\d{4}-\d{2}-\d{2}$' }
+        timeZone: { type: string, maxLength: 100, default: Europe/Tirane }
+        locale: { type: string, maxLength: 100, default: en-US }
+        search: { type: string, maxLength: 500, default: "" }
+        pnrSearch: { type: string, maxLength: 100, default: "" }
+        flightSearch: { type: string, maxLength: 100, default: "" }
+        dateFrom: { type: string, maxLength: 10, default: "" }
+        dateTo: { type: string, maxLength: 10, default: "" }
+        flightDateFrom: { type: string, maxLength: 10, default: "" }
+        flightDateTo: { type: string, maxLength: 10, default: "" }
+        statusFilter: { type: string, enum: ["", draft, pending, confirmed, ticketed, cancelled], default: "" }
+        agentFilter:
+          type: array
+          maxItems: 1000
+          items: { type: string, pattern: '^\d+$' }
+          default: []
+        paymentFilter: { type: string, enum: ["", paid, partial, unpaid], default: "" }
+        emailTicketFilter: { type: string, enum: ["", with, without], default: "" }
+        alertFilter: { type: string, enum: ["", with, without], default: "" }
+        unsentTicketFilter: { type: boolean, default: false }
+        sortBy: { type: string, enum: ["", date, ref, pnr, klienti, agjencia, fluturimi, flightDate, flightTime, pax, financa, neto, commission, paid, due, credit, statusi], default: "" }
+        sortDir: { type: string, enum: [asc, desc], default: asc }
+      required: [todayISO]
+    BookingColumnsInput:
+      type: object
+      required: [visibleColumns]
+      properties:
+        columnWidths:
+          type: object
+          description: Optional per-column pixel widths; omission preserves previously saved widths.
+          additionalProperties:
+            type: integer
+            minimum: 48
+            maximum: 1000
+        visibleColumns:
+          type: ["array", "null"]
+          minItems: 1
+          maxItems: 16
+          uniqueItems: true
+          items:
+            type: string
+            enum: [date, ref, pnr, klienti, agjencia, fluturimi, flightDate, flightTime, pax, financa, neto, commission, paid, due, credit, statusi]
+    PublicEnrollment:
+      type: object
+      required: [userId, name, email, role, company, groupId, createdAt, approvedAt, notificationStatus, notificationError, activationStatus, activationError]
+      properties:
+        userId: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        company: { type: ["string", "null"] }
+        groupId: { type: ["integer", "null"] }
+        createdAt: { type: string }
+        approvedAt: { type: ["string", "null"] }
+        notificationStatus: { type: string }
+        notificationError: { type: ["string", "null"] }
+        activationStatus: { type: string }
+        activationError: { type: ["string", "null"] }
+    PublicEnrollmentApproval:
+      type: object
+      required: [groupId]
+      properties:
+        groupId: { type: integer, minimum: 1 }
+    EnrollmentEmailRetry:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [notification, activation] }
+    EnrollmentEmailResult:
+      type: object
+      required: [emailStatus, emailError]
+      properties:
+        approved: { type: boolean }
+        emailStatus: { type: string }
+        emailError: { type: ["string", "null"] }
+    GuestFlightPolicy:
+      type: object
+      additionalProperties: false
+      required: [groupId]
+      properties:
+        groupId:
+          type: ["integer", "null"]
+          minimum: 1
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    AssistantQueryInput:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 2
+          maxLength: 1000
+
+    AssistantAnswer:
+      type: object
+      additionalProperties: false
+      required: [answer, generatedAt]
+      properties:
+        answer:
+          type: string
+        generatedAt:
+          type: string
+          format: date-time
+        proposal:
+          oneOf:
+            - $ref: "#/components/schemas/AssistantActionProposal"
+            - type: "null"
+
+    AssistantActionProposal:
+      type: object
+      additionalProperties: false
+      required: [proposalId, type, module, title, summary, warning, expiresAt]
+      properties:
+        proposalId:
+          type: string
+        type:
+          type: string
+          enum: [task_create_self, task_set_status, booking_set_status, flight_set_confirmed, payment_confirm]
+        module:
+          type: string
+          enum: [tasks, bookings, flights, payments]
+        title:
+          type: string
+        summary:
+          type: string
+        warning:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+
+    AssistantActionResult:
+      type: object
+      additionalProperties: false
+      required: [proposalId, status, message]
+      properties:
+        proposalId:
+          type: string
+        status:
+          type: string
+          enum: [executed, already_executed]
+        message:
+          type: string
+
+    PageLayoutScope:
+      type: string
+      enum: [internal, external]
+    PublicPageLayoutSelection:
+      type: object
+      required: [scope, page, variant]
+      properties:
+        scope: { $ref: "#/components/schemas/PageLayoutScope" }
+        page: { type: string }
+        variant: { type: string }
+    PublicPageLayouts:
+      type: object
+      required: [layouts]
+      properties:
+        layouts:
+          type: array
+          items: { $ref: "#/components/schemas/PublicPageLayoutSelection" }
+    PageLayoutVariant:
+      type: object
+      required: [id, label, description, status]
+      properties:
+        id: { type: string }
+        label: { type: string }
+        description: { type: string }
+        status: { type: string, enum: [ready, preparing] }
+    PageLayoutEntry:
+      type: object
+      required: [scope, page, label, route, variant, defaultVariant, isDefault, variants]
+      properties:
+        scope: { $ref: "#/components/schemas/PageLayoutScope" }
+        page: { type: string }
+        label: { type: string }
+        route: { type: string }
+        variant: { type: string }
+        defaultVariant: { type: string }
+        isDefault: { type: boolean }
+        updatedAt: { type: [string, "null"], format: date-time }
+        variants:
+          type: array
+          items: { $ref: "#/components/schemas/PageLayoutVariant" }
+    PageLayoutSettings:
+      type: object
+      required: [pages]
+      properties:
+        pages:
+          type: array
+          items: { $ref: "#/components/schemas/PageLayoutEntry" }
+    SetPageLayoutBody:
+      type: object
+      additionalProperties: false
+      required: [variant]
+      properties:
+        variant: { type: string, minLength: 1, maxLength: 64 }
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # ──────── FLIGHT ────────
+    FlightDiscount:
+      type: [object, "null"]
+      required: [type, value]
+      properties:
+        channels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum: [offline, api, agents, public]
+        type:
+          type: string
+          enum: [percent, fixed]
+        value:
+          type: number
+          exclusiveMinimum: 0
+    Flight:
+      type: object
+      properties:
+        flightDiscount:
+          $ref: '#/components/schemas/FlightDiscount'
+        discountedAdultPrice:
+          type: number
+        suspectRecheck:
+          type: [object, "null"]
+          properties:
+            outcome:
+              type: string
+              enum: [found, missing, error, empty]
+            checkedAt:
+              type: string
+              format: date-time
+            missingChecks:
+              type: integer
+          required: [outcome, checkedAt, missingChecks]
+        id:
+          type: integer
+        airline:
+          type: string
+        flightNumber:
+          type: string
+        fromCity:
+          type: string
+        toCity:
+          type: string
+        departureDate:
+          type: string
+        departureTime:
+          type: string
+        arrivalDate:
+          type: string
+        arrivalTime:
+          type: string
+        adultPrice:
+          type: number
+        childPrice:
+          type: number
+        infantPrice:
+          type: number
+        tax:
+          type: number
+        totalSeats:
+          type: integer
+        soldSeats:
+          type: integer
+        availableSeats:
+          type: integer
+        status:
+          type: string
+        isConfirmed:
+          type: boolean
+        excludeFromGoogleRule:
+          type: boolean
+        externalSalesBlocked:
+          type: boolean
+        cabinBaggageKg:
+          type: ["number", "null"]
+        checkedBaggageCount:
+          type: ["integer", "null"]
+        checkedBaggageKg:
+          type: ["number", "null"]
+        checkedBaggagePrice:
+          type: ["number", "null"]
+        seatSelectionPrice:
+          type: ["number", "null"]
+        priorityBoardingPrice:
+          type: ["number", "null"]
+        insurancePrice:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        sellCutoffHours:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - airline
+        - flightNumber
+        - fromCity
+        - toCity
+        - departureDate
+        - departureTime
+        - arrivalDate
+        - arrivalTime
+        - adultPrice
+        - childPrice
+        - infantPrice
+        - tax
+        - totalSeats
+        - soldSeats
+        - availableSeats
+        - status
+        - cabinBaggageKg
+        - checkedBaggageKg
+        - checkedBaggagePrice
+        - seatSelectionPrice
+        - priorityBoardingPrice
+        - insurancePrice
+        - notes
+        - sellCutoffHours
+        - createdAt
+        - updatedAt
+
+    CreateFlightBody:
+      type: object
+      properties:
+        airline:
+          type: string
+        flightNumber:
+          type: string
+        fromCity:
+          type: string
+        toCity:
+          type: string
+        departureDate:
+          type: string
+        departureTime:
+          type: string
+        arrivalDate:
+          type: string
+        arrivalTime:
+          type: string
+        adultPrice:
+          type: number
+        childPrice:
+          type: number
+        infantPrice:
+          type: number
+        tax:
+          type: number
+        totalSeats:
+          type: integer
+        status:
+          type: string
+        isConfirmed:
+          type: boolean
+        excludeFromGoogleRule:
+          type: boolean
+        externalSalesBlocked:
+          type: boolean
+        cabinBaggageKg:
+          type: ["number", "null"]
+        checkedBaggageCount:
+          type: ["integer", "null"]
+        checkedBaggageKg:
+          type: ["number", "null"]
+        checkedBaggagePrice:
+          type: ["number", "null"]
+        seatSelectionPrice:
+          type: ["number", "null"]
+        priorityBoardingPrice:
+          type: ["number", "null"]
+        insurancePrice:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        sellCutoffHours:
+          type: ["integer", "null"]
+      required:
+        - airline
+        - flightNumber
+        - fromCity
+        - toCity
+        - departureDate
+        - departureTime
+        - arrivalDate
+        - arrivalTime
+        - adultPrice
+        - childPrice
+        - infantPrice
+        - tax
+        - totalSeats
+
+    UpdateFlightBody:
+      type: object
+      properties:
+        airline:
+          type: string
+        flightNumber:
+          type: string
+        fromCity:
+          type: string
+        toCity:
+          type: string
+        departureDate:
+          type: string
+        departureTime:
+          type: string
+        arrivalDate:
+          type: string
+        arrivalTime:
+          type: string
+        adultPrice:
+          type: number
+        childPrice:
+          type: number
+        infantPrice:
+          type: number
+        tax:
+          type: number
+        totalSeats:
+          type: integer
+        status:
+          type: string
+        isConfirmed:
+          type: boolean
+        excludeFromGoogleRule:
+          type: boolean
+        externalSalesBlocked:
+          type: boolean
+        cabinBaggageKg:
+          type: ["number", "null"]
+        checkedBaggageCount:
+          type: ["integer", "null"]
+        checkedBaggageKg:
+          type: ["number", "null"]
+        checkedBaggagePrice:
+          type: ["number", "null"]
+        seatSelectionPrice:
+          type: ["number", "null"]
+        priorityBoardingPrice:
+          type: ["number", "null"]
+        insurancePrice:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        sellCutoffHours:
+          type: ["integer", "null"]
+        confirmDateChange:
+          type: boolean
+          description: >
+            Kërkohet true kur ndryshohet departureDate e një fluturimi me rezervime
+            aktive — konfirmon që pasagjerët zhvendosen bashkë me fluturimin.
+
+    ToggleFlightSalesBody:
+      type: object
+      properties:
+        open:
+          type: boolean
+      required:
+        - open
+
+    # ──────── BOOKING ────────
+    Booking:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingRef:
+          type: string
+        flightId:
+          type: integer
+        agentId:
+          type: ["integer", "null"]
+        customerName:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        status:
+          type: string
+        totalAmount:
+          type: number
+        paidAmount:
+          type: number
+        dueAmount:
+          type: number
+        markup:
+          type: number
+        commission:
+          type: number
+        discount:
+          type: number
+        pnr:
+          type: ["string", "null"]
+        airlineTicketUrl:
+          type: ["string", "null"]
+        ticketEmailPending:
+          type: boolean
+        ticketEmailSending:
+          type: boolean
+          description: Present on an accepted asynchronous ticket response. Does not mean the email was delivered.
+        saveVersion:
+          type: string
+          description: Opaque booking and child-row revision for atomic saves.
+        ticketEmailSentAt:
+          type: ["string", "null"]
+        netPrice:
+          type: ["number", "null"]
+        commissionAmount:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        flight:
+          $ref: "#/components/schemas/Flight"
+        passengers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Passenger"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - bookingRef
+        - flightId
+        - agentId
+        - customerName
+        - customerEmail
+        - customerPhone
+        - status
+        - ticketEmailPending
+        - totalAmount
+        - paidAmount
+        - dueAmount
+        - markup
+        - commission
+        - notes
+        - flight
+        - passengers
+        - payments
+        - createdAt
+        - updatedAt
+
+    CreateBookingBody:
+      type: object
+      properties:
+        flightId:
+          type: integer
+        agentId:
+          type: ["integer", "null"]
+        customerName:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        passengers:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreatePassengerBody"
+        markup:
+          type: number
+        commission:
+          type: number
+        discount:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required:
+        - flightId
+        - customerName
+        - passengers
+
+    UpdateBookingBody:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        status:
+          type: string
+        markup:
+          type: number
+        commission:
+          type: number
+        discount:
+          type: number
+        totalAmount:
+          type: number
+        pnr:
+          type: ["string", "null"]
+        netPrice:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        agentId:
+          type: ["integer", "null"]
+
+    BookingStatusUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [draft, pending, confirmed]
+      required:
+        - status
+
+    BookingStatusResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [draft, pending, confirmed]
+      required:
+        - id
+        - status
+
+    # ──────── PASSENGER ────────
+    Passenger:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingId:
+          type: integer
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        gender:
+          type: ["string", "null"]
+        dateOfBirth:
+          type: ["string", "null"]
+        nationality:
+          type: ["string", "null"]
+        passportNumber:
+          type: ["string", "null"]
+        passportExpiry:
+          type: ["string", "null"]
+        seatNumber:
+          type: ["string", "null"]
+        baggageOption:
+          type: ["string", "null"]
+        pnr:
+          type: ["string", "null"]
+        hasSeatSelection:
+          type: boolean
+        hasPriorityBoarding:
+          type: boolean
+        hasInsurance:
+          type: boolean
+        extraCost:
+          type: number
+        cancelled:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - bookingId
+        - type
+        - firstName
+        - lastName
+        - dateOfBirth
+        - nationality
+        - passportNumber
+        - passportExpiry
+        - seatNumber
+        - baggageOption
+        - hasSeatSelection
+        - hasPriorityBoarding
+        - hasInsurance
+        - extraCost
+        - cancelled
+        - createdAt
+
+    CreatePassengerBody:
+      type: object
+      properties:
+        bookingId:
+          type: ["integer", "null"]
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        gender:
+          type: ["string", "null"]
+        dateOfBirth:
+          type: ["string", "null"]
+        nationality:
+          type: ["string", "null"]
+        passportNumber:
+          type: ["string", "null"]
+        passportExpiry:
+          type: ["string", "null"]
+        seatNumber:
+          type: ["string", "null"]
+        baggageOption:
+          type: ["string", "null"]
+        hasSeatSelection:
+          type: boolean
+        hasPriorityBoarding:
+          type: boolean
+        hasInsurance:
+          type: boolean
+        ticketPrice:
+          type: ["number", "null"]
+      required:
+        - type
+        - firstName
+        - lastName
+
+    UpdatePassengerBody:
+      type: object
+      properties:
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        gender:
+          type: ["string", "null"]
+        dateOfBirth:
+          type: ["string", "null"]
+        nationality:
+          type: ["string", "null"]
+        passportNumber:
+          type: ["string", "null"]
+        passportExpiry:
+          type: ["string", "null"]
+        seatNumber:
+          type: ["string", "null"]
+        baggageOption:
+          type: ["string", "null"]
+        pnr:
+          type: ["string", "null"]
+        hasSeatSelection:
+          type: boolean
+        hasPriorityBoarding:
+          type: boolean
+        hasInsurance:
+          type: boolean
+        ticketPrice:
+          type: ["number", "null"]
+        cancelled:
+          type: boolean
+
+    # ──────── PAYMENT ────────
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        bookingId:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+        status:
+          type: string
+        reference:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        confirmNote:
+          type: ["string", "null"]
+        isRefund:
+          type: boolean
+        confirmed:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - bookingId
+        - amount
+        - method
+        - status
+        - reference
+        - notes
+        - isRefund
+        - createdAt
+
+    CreatePaymentBody:
+      type: object
+      properties:
+        bookingId:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+          minLength: 1
+          description: Explicitly selected active payment method (or canonical wallet credit).
+        reference:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required:
+        - bookingId
+        - amount
+        - method
+
+    UpdatePaymentBody:
+      type: object
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+          minLength: 1
+          description: When supplied, must be an active payment method (or canonical wallet credit).
+        reference:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        confirmNote:
+          type: ["string", "null"]
+        status:
+          type: string
+        confirmed:
+          type: boolean
+
+    BookingPaymentInput:
+      type: object
+      required: [amount, method]
+      properties:
+        amount:
+          type: number
+        method:
+          type: string
+          minLength: 1
+          description: Explicitly selected active payment method (or canonical wallet credit).
+        reference:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    BulkPaymentInput:
+      type: object
+      required: [payments, method, tenderedAmount]
+      properties:
+        payments:
+          type: array
+          items:
+            type: object
+            required: [bookingId, amount]
+            properties:
+              bookingId: { type: integer }
+              amount: { type: number }
+        method:
+          type: string
+          minLength: 1
+          description: Explicitly selected active payment method (or canonical wallet credit).
+        tenderedAmount:
+          type: number
+        agentId:
+          type: integer
+        reference:
+          type: string
+        notes:
+          type: string
+
+    RefundPaymentBody:
+      type: object
+      properties:
+        amount:
+          type: number
+        reason:
+          type: ["string", "null"]
+      required:
+        - amount
+
+    # ──────── AGENT ────────
+    AgentGroupPeriod:
+      type: object
+      required: [groupId, dateFrom, dateTo]
+      properties:
+        groupId:
+          type: ["integer", "null"]
+        dateFrom:
+          type: ["string", "null"]
+          format: date
+        dateTo:
+          type: ["string", "null"]
+          format: date
+    AgentGroupPeriodInput:
+      type: object
+      additionalProperties: false
+      required: [dateFrom, dateTo]
+      properties:
+        dateFrom:
+          type: ["string", "null"]
+          format: date
+        dateTo:
+          type: ["string", "null"]
+          format: date
+    AgencyGroupRule:
+      type: object
+      required: [id, groupId, airport, direction, dateFrom, dateTo]
+      properties:
+        id:
+          type: integer
+        groupId:
+          type: integer
+        airport:
+          type: string
+        direction:
+          type: string
+          enum: [either, from, to]
+        dateFrom:
+          type: ["string", "null"]
+          format: date
+        dateTo:
+          type: ["string", "null"]
+          format: date
+    AgencyGroup:
+      type: object
+      required: [id, name, agentCount, rules]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        agentCount:
+          type: integer
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgencyGroupRule"
+    Agent:
+      type: object
+      description: Agency profile; displayColor is an optional internal bookings-list text color.
+      properties:
+        displayColor:
+          type: ["string", "null"]
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        id:
+          type: integer
+        groupId:
+          type: ["integer", "null"]
+        groupName:
+          type: ["string", "null"]
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        financeEmail:
+          type: ["string", "null"]
+        company:
+          type: ["string", "null"]
+        commission:
+          type: number
+        markup:
+          type: number
+        status:
+          type: string
+        walletBalance:
+          type: number
+        showInReports:
+          type: boolean
+        showContactToUsers:
+          type: boolean
+        managerCanEdit:
+          type: boolean
+        notifyByEmail:
+          type: boolean
+        notifyCreated:
+          type: boolean
+        notifyProcessing:
+          type: boolean
+        notifyConfirmed:
+          type: boolean
+        notifyTicketed:
+          type: boolean
+        notifyCancelled:
+          type: boolean
+        seesHiddenFlights:
+          type: boolean
+        weeklyDebtReport:
+          type: boolean
+        totalBookings:
+          type: integer
+        totalPassengers:
+          type: integer
+        totalSales:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - groupId
+        - groupName
+        - name
+        - email
+        - phone
+        - company
+        - commission
+        - markup
+        - status
+        - walletBalance
+        - showInReports
+        - showContactToUsers
+        - managerCanEdit
+        - notifyByEmail
+        - seesHiddenFlights
+        - totalBookings
+        - totalSales
+        - createdAt
+
+    CreateAgentBody:
+      type: object
+      description: Agency creation fields, including optional bookings-list display color.
+      properties:
+        displayColor:
+          type: ["string", "null"]
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        name:
+          type: string
+        groupId:
+          type: integer
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        financeEmail:
+          type: ["string", "null"]
+        company:
+          type: ["string", "null"]
+        commission:
+          type: number
+        markup:
+          type: number
+        status:
+          type: string
+        notifyByEmail:
+          type: boolean
+        notifyCreated:
+          type: boolean
+        notifyProcessing:
+          type: boolean
+        notifyConfirmed:
+          type: boolean
+        notifyTicketed:
+          type: boolean
+        notifyCancelled:
+          type: boolean
+      required:
+        - name
+        - email
+        - groupId
+
+    UpdateAgentBody:
+      type: object
+      properties:
+        displayColor:
+          type: ["string", "null"]
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        name:
+          type: string
+        groupId:
+          type: integer
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        financeEmail:
+          type: ["string", "null"]
+        company:
+          type: ["string", "null"]
+        commission:
+          type: number
+        markup:
+          type: number
+        discountPercent:
+          type: number
+        discountType:
+          type: string
+        discountFixed:
+          type: number
+        status:
+          type: string
+        showInReports:
+          type: boolean
+        showContactToUsers:
+          type: boolean
+        managerCanEdit:
+          type: boolean
+        notifyByEmail:
+          type: boolean
+        notifyCreated:
+          type: boolean
+        notifyProcessing:
+          type: boolean
+        notifyConfirmed:
+          type: boolean
+        notifyTicketed:
+          type: boolean
+        notifyCancelled:
+          type: boolean
+        seesHiddenFlights:
+          type: boolean
+        weeklyDebtReport:
+          type: boolean
+
+    # ──────── DASHBOARD ────────
+    DashboardSummary:
+      type: object
+      properties:
+        bookingsToday:
+          type: integer
+        salesToday:
+          type: number
+        profitToday:
+          type: number
+        unpaidBookings:
+          type: integer
+        unpaidAmount:
+          type: number
+        totalSeatsAvailable:
+          type: integer
+        totalSeatsSold:
+          type: integer
+        totalBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        bookingsByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+        - bookingsToday
+        - salesToday
+        - profitToday
+        - unpaidBookings
+        - unpaidAmount
+        - totalSeatsAvailable
+        - totalSeatsSold
+        - totalBookings
+        - totalRevenue
+        - bookingsByStatus
+
+    # ──────── REPORTS ────────
+    SalesReport:
+      type: object
+      properties:
+        totalSales:
+          type: number
+        totalProfit:
+          type: number
+        totalBookings:
+          type: integer
+        totalPassengers:
+          type: integer
+        byDay:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              sales:
+                type: number
+              profit:
+                type: number
+              bookings:
+                type: integer
+            required:
+              - date
+              - sales
+              - profit
+              - bookings
+      required:
+        - totalSales
+        - totalProfit
+        - totalBookings
+        - totalPassengers
+        - byDay
+
+    RoutePerformance:
+      type: object
+      properties:
+        route:
+          type: string
+        fromCity:
+          type: string
+        toCity:
+          type: string
+        totalFlights:
+          type: integer
+        totalBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        totalSeats:
+          type: integer
+        soldSeats:
+          type: integer
+        occupancyRate:
+          type: number
+      required:
+        - route
+        - fromCity
+        - toCity
+        - totalFlights
+        - totalBookings
+        - totalRevenue
+        - totalSeats
+        - soldSeats
+        - occupancyRate
+
+    AgentSales:
+      type: object
+      properties:
+        agentId:
+          type: integer
+        agentName:
+          type: string
+        company:
+          type: ["string", "null"]
+        totalBookings:
+          type: integer
+        totalPassengers:
+          type: integer
+        totalSales:
+          type: number
+        totalCommission:
+          type: number
+      required:
+        - agentId
+        - agentName
+        - company
+        - totalBookings
+        - totalPassengers
+        - totalSales
+        - totalCommission
+
+    AgentSalesReport:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AgentSales"
+        byDay:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              sales:
+                type: number
+              profit:
+                type: number
+              bookings:
+                type: integer
+            required:
+              - date
+              - sales
+              - profit
+              - bookings
+      required:
+        - agents
+        - byDay
+
+    DetailedFlightStatusCounts:
+      type: object
+      properties:
+        draft:
+          type: integer
+        pending:
+          type: integer
+        confirmed:
+          type: integer
+        ticketed:
+          type: integer
+        cancelled:
+          type: integer
+      required: [draft, pending, confirmed, ticketed, cancelled]
+
+    DetailedFlightDate:
+      type: object
+      properties:
+        flightId:
+          type: integer
+        departureDate:
+          type: string
+        departureTime:
+          type: string
+        arrivalDate:
+          type: string
+        arrivalTime:
+          type: string
+        flightStatus:
+          type: string
+        totalSeats:
+          type: integer
+        totalBookings:
+          type: integer
+        totalPassengers:
+          type: integer
+        occupiedSeats:
+          type: integer
+        occupancyRate:
+          type: number
+        totalRevenue:
+          type: number
+        totalPaid:
+          type: number
+        totalDue:
+          type: number
+      required:
+        - flightId
+        - departureDate
+        - departureTime
+        - arrivalDate
+        - arrivalTime
+        - flightStatus
+        - totalSeats
+        - totalBookings
+        - totalPassengers
+        - occupiedSeats
+        - occupancyRate
+        - totalRevenue
+        - totalPaid
+        - totalDue
+
+    DetailedFlightAgent:
+      type: object
+      properties:
+        agentId:
+          type: ["integer", "null"]
+        agentName:
+          type: string
+        company:
+          type: ["string", "null"]
+        totalBookings:
+          type: integer
+        totalPassengers:
+          type: integer
+        totalSales:
+          type: number
+        totalPaid:
+          type: number
+        totalDue:
+          type: number
+        totalCommission:
+          type: number
+        salesShare:
+          type: number
+      required:
+        - agentId
+        - agentName
+        - company
+        - totalBookings
+        - totalPassengers
+        - totalSales
+        - totalPaid
+        - totalDue
+        - totalCommission
+        - salesShare
+
+    DetailedFlightGroup:
+      type: object
+      properties:
+        key:
+          type: string
+        route:
+          type: string
+        fromCity:
+          type: string
+        toCity:
+          type: string
+        airline:
+          type: string
+        flightNumber:
+          type: string
+        totalFlightDates:
+          type: integer
+        totalBookings:
+          type: integer
+        totalPassengers:
+          type: integer
+        totalSeats:
+          type: integer
+        occupiedSeats:
+          type: integer
+        occupancyRate:
+          type: number
+        totalRevenue:
+          type: number
+        totalPaid:
+          type: number
+        totalDue:
+          type: number
+        totalNet:
+          type: number
+        netComplete:
+          type: boolean
+        totalCommission:
+          type: number
+        statuses:
+          $ref: "#/components/schemas/DetailedFlightStatusCounts"
+        dates:
+          type: array
+          items:
+            $ref: "#/components/schemas/DetailedFlightDate"
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/DetailedFlightAgent"
+      required:
+        - key
+        - route
+        - fromCity
+        - toCity
+        - airline
+        - flightNumber
+        - totalFlightDates
+        - totalBookings
+        - totalPassengers
+        - totalSeats
+        - occupiedSeats
+        - occupancyRate
+        - totalRevenue
+        - totalPaid
+        - totalDue
+        - totalNet
+        - netComplete
+        - totalCommission
+        - statuses
+        - dates
+        - agents
+
+    DetailedFlightsReport:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/DetailedFlightGroup"
+      required:
+        - groups
+
+    AirlinePerformance:
+      type: object
+      properties:
+        airline:
+          type: string
+        totalFlights:
+          type: integer
+        totalBookings:
+          type: integer
+        totalRevenue:
+          type: number
+        occupancyRate:
+          type: number
+      required:
+        - airline
+        - totalFlights
+        - totalBookings
+        - totalRevenue
+        - occupancyRate

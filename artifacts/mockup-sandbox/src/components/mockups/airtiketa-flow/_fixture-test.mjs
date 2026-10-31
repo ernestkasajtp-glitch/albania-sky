@@ -1,0 +1,102 @@
+// Scoped adaptation of tests/air-flow.mjs for source labels and redirect boundary.
+import assert from "node:assert/strict";
+const {chromium}=await import(`${process.cwd()}/node_modules/.pnpm/node_modules/playwright-core/index.mjs`);
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||"/nix/store/71577rskzyhch3axhdqx7faygc2xyn4v-playwright-browsers-1.55.0-with-cjk/chromium-1187/chrome-linux/chrome",args:["--no-sandbox"]});
+const page=await browser.newPage({viewport:{width:1360,height:1000}});
+const errors=[];const apiCalls=[];
+page.on("pageerror",e=>errors.push(e.message));
+page.on("request",r=>{if(new URL(r.url()).pathname.startsWith("/api"))apiCalls.push(r.url())});
+const base="http://127.0.0.1:80/__mockup/preview/airtiketa-flow/";
+const search=()=>page.getByRole("button",{name:"Search",exact:true}).click();
+try{
+ await page.goto(base+"Results?lang=en");
+ await page.locator(".as-prototype-banner").waitFor();
+ assert.equal(await page.locator(".as-prototype-banner").count(),1);
+ assert.equal(await page.locator(".as-progress,.as-support,.as-note,.as-summary").count(),0);
+ await page.getByRole("button",{name:"List",exact:true}).click();
+ assert.equal(await page.locator("tbody tr").count(),3);
+ assert.equal(await page.locator("tbody tr button").count(),2);
+ assert.deepEqual(await page.locator("thead th").allTextContents(),["Date","Time","Flight No.","Price",""]);
+ await page.getByLabel("Date",{exact:true}).fill("2026-12-31");await search();
+ assert.equal(await page.locator("tbody tr").count(),3);
+ await page.getByRole("button",{name:"Cards",exact:true}).click();
+ await page.getByRole("heading",{name:"No flights found",exact:true}).waitFor();
+ await page.getByRole("button",{name:"List",exact:true}).click();
+ await page.getByLabel("To",{exact:true}).selectOption("FCO");await search();
+ assert.equal(await page.locator("tbody tr").count(),2);
+ assert.match(await page.locator(".as-route-table-title").innerText(),/TIA.*FCO/);
+ await page.getByLabel("From",{exact:true}).selectOption("LTN");
+ await page.getByLabel("To",{exact:true}).selectOption("TIA");await search();
+ assert.equal(await page.locator("tbody tr").count(),2);
+ assert.match(await page.locator(".as-route-table-title").innerText(),/LTN.*TIA/);
+ await page.getByLabel("From",{exact:true}).selectOption("TIA");
+ await page.getByLabel("To",{exact:true}).selectOption("LTN");await search();
+ await page.getByRole("spinbutton",{name:"Child",exact:true}).fill("1");
+ await page.getByRole("spinbutton",{name:"Infant",exact:true}).fill("1");
+ await page.locator("tbody tr").nth(1).getByRole("button",{name:"Book",exact:true}).click();
+ await page.waitForURL("**/Passengers?lang=en");
+ await page.locator("form section").first().waitFor();
+ assert.equal(await page.locator("form section").count(),3);
+ assert.equal(await page.locator('input[type="email"], input[type="tel"], textarea').count(),0);
+ assert.equal(await page.locator('input[type="date"]').count(),2);
+ await page.getByRole("button",{name:"Add Passenger",exact:true}).click();
+ assert.equal(await page.locator("form section").count(),4);
+ await page.getByRole("button",{name:"Passenger 4 −",exact:true}).click();
+ assert.equal(await page.locator("form section").count(),3);
+ await page.getByLabel("Type 1",{exact:true}).selectOption("child");
+ assert.equal(await page.locator('input[type="date"]').count(),3);
+ await page.getByLabel("Type 1",{exact:true}).selectOption("adult");
+ const passengers=page.locator("form section");
+ for(let i=1;i<3;i++){
+  const panel=passengers.nth(i);
+  await panel.getByLabel("Name *",{exact:true}).fill(i===1?"Arben":"Lira");
+  await panel.getByLabel("Last Name *",{exact:true}).fill("Hoxha");
+  await panel.locator("select").nth(1).selectOption("F");
+  await panel.locator('input[type="date"]').fill(i===1?"2018-04-12":"2025-03-08");
+ }
+ await passengers.nth(0).getByRole("checkbox").check();
+ assert.match(await page.locator(".as-total").innerText(),/€440/);
+ assert.match(await page.locator(".as-summary").innerText(),/€361/);
+ assert.match(await page.locator(".as-summary").innerText(),/€24/);
+ assert.match(await page.locator(".as-summary").innerText(),/−€20/);
+ assert.equal(await page.locator(".as-fare-breakdown,.as-subtotal").count(),0);
+ await passengers.nth(1).locator('input[type="date"]').fill("2025-04-12");
+ await page.getByRole("button",{name:"Confirm Booking",exact:true}).click();
+ await page.getByRole("alert").waitFor();
+ assert.match(await page.getByRole("alert").innerText(),/Children must be 2–11 years old/);
+ await passengers.nth(1).locator('input[type="date"]').fill("2018-04-12");
+ // Current source permits hyphenated names; former prototype incorrectly rejected them.
+ await passengers.nth(1).getByLabel("Name *",{exact:true}).fill("Arben-Luan");
+ await page.getByRole("link",{name:"SQ",exact:true}).click();
+ await page.waitForURL("**/Passengers?lang=sq");
+ await page.waitForFunction(()=>document.documentElement.lang==="sq");
+ assert.match(await page.locator(".as-total").innerText(),/€440/);
+ await page.getByRole("button",{name:"Pay and Book",exact:true}).click();
+ await page.waitForURL("**/Payment?lang=sq");
+ await page.getByRole("button",{name:"Pay and Book",exact:true}).waitFor();
+ assert.equal(await page.getByRole("button",{name:"Pay and Book",exact:true}).isDisabled(),true);
+ assert.equal(await page.locator(".as-prototype-banner").count(),1);
+ assert.equal(await page.locator('input[type="checkbox"]').count(),3); // baggage only
+ assert.match(await page.locator(".as-total").innerText(),/€440/);
+ assert.doesNotMatch(await page.locator("main").innerText(),/Simulat|Simulo|demo|card number|Your journey/i);
+ await page.goto(base+"Passengers?lang=en");
+ await page.getByRole("button",{name:"Confirm Booking",exact:true}).click();
+ await page.waitForURL("**/Confirmation?lang=en");
+ await page.getByRole("heading",{name:"Booking Confirmed!",exact:true}).waitFor();
+ assert.equal(await page.locator(".as-prototype-banner").count(),1);
+ assert.match(await page.locator("main").innerText(),/Pending/);
+ assert.match(await page.locator("main").innerText(),/€440/);
+ assert.equal(await page.getByRole("button",{name:"Download Ticket PDF",exact:true}).isDisabled(),true);
+ assert.equal(await page.getByRole("main").getByRole("button",{name:"My Bookings",exact:true}).isDisabled(),true);
+ assert.equal(await page.locator(".as-details-list").getByText("Albanian").count(),0);
+ await page.setViewportSize({width:390,height:844});
+ for(const component of ["Results","Passengers","Payment","Confirmation"]){
+  await page.goto(base+component+"?lang=sq");
+  await page.locator("main").waitFor();
+  if(component==="Results")await page.getByRole("button",{name:"Listë",exact:true}).click();
+  assert.equal(await page.locator(".as-prototype-banner").count(),1);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,component+" mobile overflow");
+ }
+ assert.deepEqual(errors,[]);assert.deepEqual(apiCalls,[]);
+ console.log("PASS: source labels, route/date independence, both route filters, sold-out booking suppression, conditional DOB, source age/name validation, add/remove, €440 family fare/tax/baggage math, EN/SQ, direct non-payment confirmation, inactive provider/PDF/account boundaries, one external safety banner per frame, four-page mobile overflow; no API calls/browser errors.");
+}finally{await browser.close()}

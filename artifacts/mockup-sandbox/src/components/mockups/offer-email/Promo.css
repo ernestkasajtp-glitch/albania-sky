@@ -1,0 +1,59 @@
+.offer-promo-preview {
+  --promo-crimson: #c51936;
+  --promo-ink: #202932;
+  --promo-paper: #fffcf8;
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 25px 24px 36px;
+  background: #ece9e5;
+  color: var(--promo-ink);
+  font-family: "Trebuchet MS", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.offer-promo-preview *, .offer-promo-preview *::before, .offer-promo-preview *::after { box-sizing: border-box; }
+.offer-promo-preview .promo-preview-label { margin: 0 auto 17px; max-width: 600px; color: #77706c; font-size: 11px; letter-spacing: .07em; }
+.offer-promo-preview .promo-email { max-width: 600px; margin: 0 auto; background: var(--promo-paper); }
+.offer-promo-preview .promo-brand { height: 96px; padding: 0 32px; background: #171c22; }
+.offer-promo-preview .promo-brand-table { width: 100%; border-collapse: collapse; }
+.offer-promo-preview .promo-logo { display: block; width: 160px; height: 90px; object-fit: contain; }
+.offer-promo-preview .promo-brand-caption { text-align: right; color: #dedbd7; font-size: 10px; line-height: 1.6; letter-spacing: .11em; text-transform: uppercase; }
+.offer-promo-preview .promo-announcement { background: var(--promo-crimson); color: #fff9f3; padding: 29px 38px 32px; }
+.offer-promo-preview .promo-eyebrow { margin: 0 0 16px; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.offer-promo-preview .promo-title { margin: 0; font-weight: 700; font-size: 100px; line-height: .98; letter-spacing: -.065em; }
+.offer-promo-preview .promo-title span { font-size: 52px; letter-spacing: -.045em; }
+.offer-promo-preview .promo-subtitle { margin: 17px 0 0; font-size: 20px; line-height: 1.35; }
+.offer-promo-preview .promo-photo { display: block; width: 100%; height: 191px; object-fit: cover; object-position: 50% 54%; }
+.offer-promo-preview .promo-body { padding: 28px 38px 25px; }
+.offer-promo-preview .promo-salutation { margin: 0 0 9px; font-size: 17px; font-weight: 700; }
+.offer-promo-preview .promo-intro { margin: 0 0 24px; font-size: 14px; line-height: 1.7; color: #5b6065; }
+.offer-promo-preview .promo-details { width: 100%; border-collapse: collapse; border-top: 1px solid #dedbd5; border-bottom: 1px solid #dedbd5; }
+.offer-promo-preview .promo-details td { padding: 17px 0; vertical-align: top; }
+.offer-promo-preview .promo-details td + td { width: 51%; padding-left: 23px; border-left: 1px solid #dedbd5; }
+.offer-promo-preview .promo-detail-label { display: block; color: #74726e; font-size: 10px; line-height: 1.5; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+.offer-promo-preview .promo-detail-value { display: block; font-size: 15px; line-height: 1.5; font-weight: 700; }
+.offer-promo-preview .promo-deadline { color: var(--promo-crimson); }
+.offer-promo-preview .promo-cta { display: block; width: 100%; margin: 24px 0 16px; padding: 17px 24px; border: 0; border-radius: 0; background: var(--promo-crimson); color: #fff9f3; font: 700 15px "Trebuchet MS", sans-serif; text-align: center; cursor: pointer; }
+.offer-promo-preview .promo-cta:hover { background: #a9142d; }
+.offer-promo-preview .promo-cta:focus-visible { outline: 3px solid #202932; outline-offset: 3px; }
+.offer-promo-preview .promo-terms { margin: 0; font-size: 11px; line-height: 1.7; color: #77716c; }
+.offer-promo-preview .promo-message { margin: 12px 0 0; padding: 10px 12px; background: #f4e7e5; color: #98263b; font-size: 12px; line-height: 1.6; }
+.offer-promo-preview .promo-footer { padding: 17px 38px; background: #f1eeea; border-top: 1px solid #e5e0d9; font-size: 11px; line-height: 1.6; color: #77716c; }
+.offer-promo-preview .promo-footer strong { color: #41464a; font-size: 12px; }
+@media (max-width: 480px) {
+  .offer-promo-preview { padding: 19px 12px 24px; }
+  .offer-promo-preview .promo-preview-label { font-size: 10px; }
+  .offer-promo-preview .promo-brand { padding: 0 22px; height: 84px; }
+  .offer-promo-preview .promo-logo { width: 139px; height: 79px; }
+  .offer-promo-preview .promo-brand-caption { font-size: 8px; }
+  .offer-promo-preview .promo-announcement { padding: 26px 24px 29px; }
+  .offer-promo-preview .promo-eyebrow { font-size: 11px; }
+  .offer-promo-preview .promo-title { font-size: 82px; }
+  .offer-promo-preview .promo-title span { font-size: 44px; }
+  .offer-promo-preview .promo-subtitle { font-size: 17px; }
+  .offer-promo-preview .promo-photo { height: 158px; }
+  .offer-promo-preview .promo-body { padding: 24px; }
+  .offer-promo-preview .promo-details td + td { padding-left: 13px; }
+  .offer-promo-preview .promo-detail-label { font-size: 9px; letter-spacing: .05em; }
+  .offer-promo-preview .promo-detail-value { font-size: 12px; }
+  .offer-promo-preview .promo-footer { padding: 17px 24px; }
+}

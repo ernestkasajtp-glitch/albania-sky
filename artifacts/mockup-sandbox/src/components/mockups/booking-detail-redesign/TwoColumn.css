@@ -1,0 +1,142 @@
+.kt-two {
+  --kt-ink: #263448;
+  --kt-line: #dce3eb;
+  --kt-blue: #2563eb;
+  min-height: 100dvh;
+  padding: 18px;
+  background: #343a42;
+  color: var(--kt-ink);
+  font-family: var(--app-font-sans);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.kt-two * { box-sizing: border-box; }
+.kt-two button, .kt-two input { font: inherit; }
+.kt-two button { cursor: pointer; }
+.kt-two svg { width: 14px; height: 14px; flex-shrink: 0; }
+.kt-two .kt-dialog { background: #f8fafc; border: 1px solid #c3cdd9; border-radius: 12px; overflow: hidden; box-shadow: 0 16px 50px #16233330; }
+.kt-two .kt-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; background: #eef3fa; padding: 10px 18px; border-bottom: 1px solid var(--kt-line); }
+.kt-two .kt-inline { display: flex; align-items: center; gap: 9px; }
+.kt-two .kt-ref { font-size: 14px; font-weight: 750; }
+.kt-two .kt-label { font-size: 10px; font-weight: 650; letter-spacing: .065em; text-transform: uppercase; color: #718095; }
+.kt-two .kt-mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.kt-two .kt-pnr { color: #92400e; background: #fff2cc; padding: 4px 8px; border-radius: 4px; font-weight: 700; }
+.kt-two .kt-divider { width: 1px; height: 18px; background: #ced8e4; margin: 0 5px; }
+.kt-two .kt-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 30px; padding: 5px 10px; border-radius: 5px; border: 1px solid var(--kt-line); background: #fdfefe; color: #526177; font-size: 11px; font-weight: 550; white-space: nowrap; }
+.kt-two .kt-btn:hover { background: #edf3fc; border-color: #b1c7e7; }
+.kt-two .kt-btn:focus-visible, .kt-two input:focus-visible, .kt-two summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.kt-two .kt-btn.blue { color: #2563eb; border-color: #cbdcf7; }
+.kt-two .kt-btn.red { color: #dc4756; border-color: #f1ccd1; }
+.kt-two .kt-btn.green { background: #059669; color: #f7fffb; border-color: #059669; }
+.kt-two .kt-icon-btn { padding: 5px; min-height: 25px; background: transparent; border: 0; color: #66758a; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; }
+.kt-two .kt-icon-btn:hover { background: #e5edf7; }
+.kt-two .kt-steps { display: flex; align-items: center; padding: 14px 24px 12px; background: #fdfefe; border-bottom: 1px solid var(--kt-line); }
+.kt-two .kt-step { display: flex; align-items: center; gap: 7px; color: #059669; font-size: 10px; font-weight: 700; letter-spacing: .05em; }
+.kt-two .kt-step svg { width: 19px; height: 19px; }
+.kt-two .kt-step:last-child { color: #2563eb; }
+.kt-two .kt-step:last-child svg { background: #2563eb; border: 4px solid #dbeafe; border-radius: 50%; color: #f8fbff; width: 23px; height: 23px; }
+.kt-two .kt-step-line { flex: 1; height: 3px; background: #16c596; margin: 0 16px; border-radius: 3px; }
+.kt-two .kt-body { padding: 15px 18px 18px; }
+.kt-two .kt-titlebar { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 13px; }
+.kt-two h1 { margin: 0; font-size: 23px; letter-spacing: -.6px; font-weight: 750; color: #263448; }
+.kt-two .kt-muted { color: #8190a3; }
+.kt-two .kt-subtitle { color: #7e8b9d; font-size: 10px; margin: 3px 0 0; }
+.kt-two .kt-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 650; border-radius: 4px; padding: 3px 7px; background: #ecf2fa; color: #54657c; border: 1px solid #dae4ef; }
+.kt-two .kt-badge.ticketed { background: #0fbd79; color: #f7fffb; border-color: #0fbd79; }
+.kt-two .kt-badge.pdf { color: #b83e86; background: #fff1f8; border-color: #f1c4dc; }
+.kt-two .kt-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.kt-two .kt-summary { display: grid; grid-template-columns: minmax(250px, 1.4fr) repeat(4, minmax(125px, 1fr)); background: #fdfefe; border: 1px solid var(--kt-line); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+.kt-two .kt-summary-cell { padding: 12px 16px; border-left: 1px solid #e7ecf2; }
+.kt-two .kt-summary-cell:first-child { border-left: 0; }
+.kt-two .kt-client { display: flex; align-items: center; gap: 9px; margin: 6px 0 3px; font-weight: 700; }
+.kt-two .kt-client svg { color: #7e8ea3; }
+.kt-two .kt-summary-value { font-size: 20px; font-weight: 700; margin-top: 7px; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+.kt-two .kt-summary-value.pnr { font-size: 17px; letter-spacing: 1px; margin-top: 11px; color: #a16a23; }
+.kt-two .kt-summary-cell.profit { background: #ecfbf4; }
+.kt-two .profit .kt-summary-value { color: #059669; }
+.kt-two .kt-price { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+.kt-two .kt-price input { width: 80px; min-width: 0; padding: 4px 8px; font-weight: 650; text-align: right; border: 1px solid #dbe3ed; background: #f9fbfe; border-radius: 4px; color: #263448; }
+.kt-two .kt-columns { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 14px; align-items: start; }
+.kt-two .kt-main, .kt-two .kt-payments { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.kt-two .kt-card { border: 1px solid var(--kt-line); border-radius: 8px; background: #fdfefe; overflow: hidden; box-shadow: 0 1px 2px #1e3a5b05; }
+.kt-two .kt-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e8edf3; }
+.kt-two h2 { margin: 0; font-size: 12px; font-weight: 700; }
+.kt-two .kt-flight-head { background: linear-gradient(100deg,#eff6ff,#fcfdff); }
+.kt-two .kt-flight-icon { display: inline-flex; padding: 5px; background: #2563eb; color: #f8fbff; border-radius: 5px; }
+.kt-two .kt-link { color: #2558bc; border: 0; background: transparent; font-weight: 700; padding: 0; }
+.kt-two .kt-open { background: #059669; color: #f4fff9; padding: 3px 9px; font-size: 10px; font-weight: 750; border-radius: 5px; }
+.kt-two .kt-flight-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr .7fr .7fr; padding: 12px; gap: 0; }
+.kt-two .kt-flight-grid > div { padding: 2px 11px; border-left: 1px solid #e5eaf2; }
+.kt-two .kt-flight-grid > div:first-child { padding-left: 0; border: 0; }
+.kt-two .kt-flight-grid strong { display: block; margin-top: 5px; font-size: 14px; }
+.kt-two .kt-flight-grid small { color: #7d8c9f; font-size: 10px; }
+.kt-two .kt-price-compare { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid #edf0f6; font-size: 11px; }
+.kt-two .kt-pill { color: #047d5a; background: #dff8ee; border: 1px solid #b4ead6; border-radius: 20px; padding: 3px 9px; font-weight: 750; }
+.kt-two .kt-pill.expensive { color: #d63a51; background: #fff0f2; border-color: #f8ccd4; }
+.kt-two .kt-admin { background: #f6f7fe; margin: 0 12px 12px; padding: 7px 10px; border: 1px solid #e0e4f6; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; color: #6b61bc; font-size: 10px; }
+.kt-two .kt-table-wrap { overflow-x: auto; padding: 0 10px; }
+.kt-two table { border-collapse: collapse; width: 100%; font-size: 11px; white-space: nowrap; }
+.kt-two th { text-align: left; font-size: 9px; font-weight: 650; padding: 8px 5px; }
+.kt-two td { padding: 9px 5px; border-bottom: 1px solid #e2e9f2; }
+.kt-two .kt-pax-table thead { background: linear-gradient(90deg,#4c36db,#7208d6); color: #f9f7ff; }
+.kt-two .kt-pax-table tbody { background: #eff6ff; }
+.kt-two input[type=checkbox] { accent-color: #5b3cda; width: 12px; height: 12px; vertical-align: middle; }
+.kt-two .kt-excel { margin: 16px 10px; border: 1px solid #b8dfd2; border-radius: 7px; overflow: hidden; }
+.kt-two .kt-excel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 9px; background: #008362; color: #f3fff9; }
+.kt-two .kt-excel-head .kt-btn { background: #169b6c; color: #effff6; border-color: #28ac7f; min-height: 23px; font-size: 10px; padding: 3px 6px; }
+.kt-two .kt-excel-table { padding: 9px; overflow: auto; background: #f1faf7; }
+.kt-two .kt-excel-table th { background: #09966d; color: #f2fff8; font-size: 7px; padding: 5px 4px; border: 1px solid #d2e9df; }
+.kt-two .kt-excel-table td { border: 1px solid #d9e9e2; padding: 6px 4px; font-size: 9px; background: #fdfefe; }
+.kt-two .kt-excel-table td.confirmed { color: #08805d; font-size: 8px; font-weight: 700; }
+.kt-two .kt-excel-table input { width: 63px; border: 0; background: #fff9df; padding: 2px; font-size: 9px; font-family: 'JetBrains Mono',monospace; text-align: center; font-weight: 650; }
+.kt-two .kt-extras { padding: 12px; border-top: 1px solid #e8edf3; }
+.kt-two .kt-extras .kt-actions { margin-top: 10px; }
+.kt-two .kt-extras .kt-btn { border-radius: 20px; min-height: 27px; padding: 4px 10px; }
+.kt-two .kt-empty-extra { font-size: 10px; color: #8994a3; text-align: center; padding: 15px 0 4px; }
+.kt-two .kt-money-body { padding: 12px; }
+.kt-two .kt-money-total { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; }
+.kt-two .kt-money-total strong { font-size: 21px; font-variant-numeric: tabular-nums; }
+.kt-two .kt-money-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kt-two .kt-money-grid > div { background: #059669; color: #f5fffa; padding: 11px; border-radius: 6px; }
+.kt-two .kt-money-grid > div:last-child { background: #e51d37; }
+.kt-two .kt-money-grid span { font-size: 9px; font-weight: 750; letter-spacing: .05em; }
+.kt-two .kt-money-grid strong { display: block; margin-top: 6px; font-size: 21px; font-variant-numeric: tabular-nums; }
+.kt-two .kt-progress { height: 4px; border-radius: 3px; background: #e4eaf2; margin: 15px 0 5px; }
+.kt-two .kt-progress-caption { display: flex; justify-content: space-between; color: #8a97a8; font-size: 9px; }
+.kt-two .kt-payment-history { border-top: 1px solid #e8edf3; padding: 12px; }
+.kt-two .kt-payment-empty { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; color: #8b98a9; gap: 8px; font-size: 11px; }
+.kt-two .kt-payment-empty svg { width: 25px; height: 25px; color: #b0bdce; }
+.kt-two .kt-details { padding: 12px; }
+.kt-two .kt-detail-row { display: flex; justify-content: space-between; margin-top: 10px; color: #7c899b; font-size: 11px; }
+.kt-two .kt-detail-row strong { color: #516176; font-weight: 550; }
+.kt-two details summary { cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; padding: 12px; font-weight: 650; }
+.kt-two details summary::-webkit-details-marker { display: none; }
+.kt-two details[open] summary svg:last-child { transform: rotate(180deg); }
+.kt-two .kt-history-body { padding: 0 12px 12px; border-top: 1px solid #e8edf3; }
+.kt-two .kt-history-event { padding: 10px 0 0 12px; margin-left: 3px; border-left: 2px solid #b7e8d8; }
+.kt-two .kt-history-event strong { color: #059669; font-size: 11px; }
+.kt-two .kt-history-event:last-child strong { color: #2563eb; }
+.kt-two .kt-history-event p { margin: 3px 0; color: #8794a5; font-size: 9px; }
+.kt-two .kt-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; align-items: center; gap: 14px; background: #23364c; color: #f5f8fd; border-radius: 8px; box-shadow: 0 6px 25px #16233330; padding: 13px 18px; max-width: calc(100% - 32px); }
+.kt-two .kt-toast button { background: transparent; color: inherit; border: 0; }
+@media (max-width: 1050px) {
+  .kt-two .kt-titlebar { align-items: flex-start; flex-direction: column; }
+  .kt-two .kt-summary { grid-template-columns: 1.4fr 1fr 1fr; }
+  .kt-two .kt-summary-cell { border-bottom: 1px solid #e7ecf2; }
+}
+@media (max-width: 767px) {
+  .kt-two { padding: 6px; }
+  .kt-two .kt-top { padding: 10px; }
+  .kt-two .kt-top .kt-label { display: none; }
+  .kt-two .kt-body { padding: 12px 10px; }
+  .kt-two .kt-summary { grid-template-columns: 1fr 1fr; }
+  .kt-two .kt-summary-cell:first-child { grid-column: 1 / -1; }
+  .kt-two .kt-columns { grid-template-columns: 1fr; }
+  .kt-two .kt-steps { padding: 12px 10px; }
+  .kt-two .kt-step { flex-direction: column; font-size: 8px; gap: 4px; }
+  .kt-two .kt-step-line { margin: 0 7px; }
+  .kt-two .kt-flight-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
+  .kt-two .kt-flight-grid > div { border: 0; padding: 0; }
+  .kt-two .kt-flight-head { flex-wrap: wrap; }
+  .kt-two .kt-excel-head { flex-wrap: wrap; }
+}

@@ -1,0 +1,104 @@
+/* Approved Canvas presentation only. Every rule is scoped to selected external routes. */
+.air-shell{background:#f6f5f3;color:#29272a}
+.air-shell>nav{background:#fff!important;border-bottom:1px solid #e4e1df;box-shadow:none!important;backdrop-filter:none}
+.air-shell>nav [class*="text-white"]{color:#393638}
+.air-shell>nav [class*="bg-amber-500"]{background:#dc1641;color:#fff}
+.air-shell>nav [class*="border-white"]{border-color:#e4e1df}
+.air-shell>nav img{height:64px;filter:brightness(.35)}
+.air-shell>nav>div{max-width:1160px}
+.air-shell>nav [class*="bg-[#0b1f3a]"]{background:#fff}
+.air-portal{font-family:inherit;color:#29272a;background:#f6f5f3}
+.air-shell:has(.air-flights),
+.air-shell:has(.air-booking),
+.air-portal.air-flights,
+.air-portal.air-booking{background:#e3e5e8}
+.air-portal button,.air-portal a{transition:background-color .15s,color .15s,border-color .15s}
+.air-portal button:focus-visible,.air-portal a:focus-visible{outline:2px solid #dc1641;outline-offset:3px}
+.air-portal input:focus,.air-portal select:focus{border-color:#dc1641;--tw-ring-color:#f5c4cf}
+.air-portal [class*="shadow"]{box-shadow:none}
+.air-portal [class*="hover:-translate"]:hover{transform:none}
+.air-portal [class*="bg-amber-500"]{background:#dc1641}
+.air-portal [class*="bg-amber-500"]:hover{background:#bf1237}
+.air-flights{padding-top:34px}
+.air-search{max-width:1112px;margin:0 auto;border:1px solid #e4e1df;border-radius:12px;background:#fff!important}
+.air-search>div{padding:24px 20px}
+.air-search label,.air-search p{color:#615c60!important;text-transform:none;letter-spacing:0}
+.air-search button[type="submit"]{border-radius:7px;font-weight:600}
+.air-search button:disabled{opacity:.45}
+.air-flights>.max-w-6xl{padding-top:25px}
+.air-portal .air-flight-card{border-radius:12px;border-color:#e4e1df;overflow:hidden}
+.air-flight-card>div{padding:28px}
+.air-flight-card>div>div:first-child{display:grid;grid-template-columns:150px minmax(240px,1fr) 170px;gap:24px}
+.air-flight-card>div>div:first-child>div:last-child{flex-direction:column;align-items:stretch;gap:0;padding-left:20px;border-left:1px solid #e4e1df;width:100%}
+.air-flight-card>div>div:first-child>div:last-child a{margin-top:10px;text-align:center;border-radius:7px}
+.air-flight-card>div>div:last-child:not(:first-child){margin:24px -28px -28px;padding:14px 28px;background:#faf8f6;border-color:#e4e1df}
+.air-flight-card .text-2xl{font-size:29px;font-weight:600}
+.air-flight-card [class*="bg-gradient"]{background:#fbeef2;color:#dc1641}
+.air-flight-card [class*="text-blue-500"]{color:#dc1641}
+.air-date-strip{margin-bottom:26px;padding:18px 10px;background:#fbeef2;border-radius:10px}
+.air-date-strip h2{font-size:14px;font-weight:650;margin:0 8px 12px}
+.air-date-rail{display:flex;background:#fff;border-radius:8px;overflow:hidden}
+.air-date-arrow{width:30px;flex-shrink:0;display:grid;place-items:center;color:#dc1641;cursor:pointer}
+.air-date-options{position:relative;display:flex;flex:1;min-width:0;overflow-x:auto}
+.air-date-choice{flex:1;min-width:175px;padding:10px 8px;text-align:center;border-top:2px solid transparent;border-right:1px solid #eee;cursor:pointer}
+.air-date-choice span{display:block;font-size:10px;white-space:nowrap}
+.air-date-choice strong{display:block;font-size:13px;margin-top:5px}
+.air-date-choice.selected{border-top-color:#dc1641;color:#dc1641;background:#fff8fa}
+.air-date-choice:hover{background:#fff4f7}
+.air-date-choice:disabled{cursor:wait;opacity:.6}
+.air-booking{max-width:1160px;padding:34px 24px}
+.air-itinerary{background:#fff!important;color:#29272a!important;border:1px solid #e4e1df;border-radius:12px;padding:24px}
+.air-itinerary [class*="text-blue"]{color:#787277}
+.air-itinerary>div{gap:20px;flex-wrap:wrap}
+.air-booking form{grid-template-columns:minmax(0,1fr) 350px;gap:26px}
+.air-booking .air-passengers{grid-column:auto}
+.air-passengers>div,.air-fare-summary{border-radius:12px;border-color:#e4e1df;padding:26px}
+.air-passengers>div>div>div.relative{border-radius:8px;border-color:#e4e1df;padding:20px}
+.air-passengers input,.air-passengers select{min-height:42px;background:#fff;border-color:#ddd9d7;border-radius:6px}
+.air-passengers [class*="grid-cols"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.air-passengers [class*="text-blue-600"]{color:#dc1641}
+.air-passengers input[type="checkbox"]{min-height:initial;accent-color:#dc1641}
+.air-passengers .air-baggage-option{display:flex;align-items:center;gap:16px;width:100%;min-width:0;padding:18px 16px;border:1px solid #e4e1df;border-radius:8px;background:#fffdfb;color:#29272a;cursor:pointer;font-size:14px;font-weight:600;line-height:1.5}
+.air-passengers .air-baggage-option>input{flex-shrink:0}
+.air-passengers .air-baggage-option>svg{width:26px;height:26px;flex-shrink:0;color:#817982}
+.air-passengers .air-baggage-option.is-selected{background:#fbeef2;border-color:#dc1641}
+.air-passengers .air-baggage-option.is-selected>svg{color:#dc1641}
+.air-passengers .air-baggage-option:focus-within{outline:2px solid #dc1641;outline-offset:3px}
+@media(max-width:767px){.air-passengers .air-baggage-option{padding:13px;gap:10px}.air-passengers .air-baggage-option>svg{width:21px}}
+.air-fare-summary{top:110px}
+.air-booking .air-itinerary{padding:24px;background:#fffdfb!important}
+.air-booking .air-itinerary>div{display:flex;flex-direction:column;align-items:stretch;gap:24px}
+.air-booking .air-itinerary>div>div:nth-child(2){justify-content:space-between;font-size:28px}
+.air-booking .air-itinerary>div>div:last-child{border-top:1px solid #e4e1df;padding-top:18px}
+.air-passengers .air-gender-options{display:flex;gap:8px}
+.air-passengers .air-gender-choice{position:relative;flex:1;min-width:0;min-height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #ddd9d7;border-radius:6px;background:white;cursor:pointer;font-size:14px;color:#615c60}
+.air-passengers .air-gender-choice input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.air-passengers .air-gender-choice.is-selected{background:#fbeef2;border-color:#dc1641;color:#b81035;font-weight:600}
+.air-passengers .air-gender-choice:focus-within{outline:2px solid #dc1641;outline-offset:2px}
+.air-fare-summary button[type="submit"],.air-fare-summary a:not(.underline){background:#dc1641!important;border-radius:7px;font-weight:600}
+.air-fare-summary [class*="text-blue-600"]{color:#dc1641}
+.air-fare-summary h2,.air-passengers h2{font-size:18px}
+.air-confirm{max-width:960px;padding:40px 24px}
+.air-confirm>div:nth-of-type(2){background:#302b31!important;border-radius:12px}
+.air-confirm>div:nth-of-type(2)>div{gap:18px;flex-wrap:wrap}
+.air-confirm .text-3xl.font-mono{color:#29272a;background:#eeeae5;border-radius:8px}
+.air-confirm>div:last-child button:first-child{background:#dc1641!important;border-radius:7px}
+.air-confirm>div:nth-of-type(3){border-radius:12px;border-color:#e4e1df}
+@media(max-width:1100px){.air-search{margin:0 24px}.air-flight-card>div>div:first-child{grid-template-columns:130px minmax(200px,1fr) 140px;gap:14px}.air-date-choice{min-width:175px}}
+@media(max-width:767px){
+ .air-shell>nav img{height:48px}.air-shell>nav>div{padding:14px 18px}
+ .air-flights{padding-top:22px}.air-search{margin:0 18px}.air-search>div{padding:18px}
+ .air-flight-card>div{padding:20px}
+ .air-flight-card>div>div:first-child{display:flex;flex-direction:column;align-items:stretch;gap:20px}
+ .air-flight-card>div>div:first-child>div:last-child{flex-direction:row;align-items:center;justify-content:space-between;border-left:0;border-top:1px solid #e4e1df;padding:16px 0 0}
+ .air-flight-card>div>div:first-child>div:last-child a{margin:0}
+ .air-flight-card>div>div:last-child:not(:first-child){margin:20px -20px -20px;padding:14px 20px}
+ .air-flight-card .text-2xl{font-size:26px}
+ .air-booking{padding:24px 18px}.air-booking form{grid-template-columns:1fr}
+ .air-passengers>div,.air-fare-summary{padding:18px}
+ .air-passengers>div>div>div.relative{padding:14px}
+ .air-fare-summary{position:static}
+ .air-date-choice{min-width:185px}.air-date-arrow{width:24px}
+ .air-confirm{padding:28px 18px}
+}
+@media(prefers-reduced-motion:reduce){.air-portal *{transition:none!important}}

@@ -1,0 +1,141 @@
+.booking-sage {
+  --sage-page: #e8eeea;
+  --sage-panel: #f5f8f5;
+  --sage-group: #e5ede6;
+  --sage-line: #c4d0c7;
+  --sage-field-line: #8b9e91;
+  --sage-ink: #283b34;
+  --sage-muted: #4e6357;
+  min-height: 100dvh;
+  background: var(--sage-page);
+  color: var(--sage-ink);
+}
+
+.booking-sage .air-portal {
+  background: var(--sage-page);
+  color: var(--sage-ink);
+}
+
+.booking-sage .air-passengers > div,
+.booking-sage .air-fare-summary {
+  background: var(--sage-panel);
+  border-color: var(--sage-line);
+}
+
+.booking-sage .air-passengers > div > div > div.relative {
+  background: var(--sage-group);
+  border-color: #bfcec2;
+}
+
+.booking-sage .air-passengers h2,
+.booking-sage .air-fare-summary h2,
+.booking-sage .text-gray-900 {
+  color: var(--sage-ink);
+}
+
+.booking-sage .air-passengers .text-gray-500,
+.booking-sage .air-passengers .text-gray-700,
+.booking-sage .air-fare-summary .text-gray-600 {
+  color: var(--sage-muted);
+}
+
+.booking-sage .air-passengers input:not([type="checkbox"]):not([type="radio"]),
+.booking-sage .air-passengers select,
+.booking-sage .air-passengers .air-gender-choice {
+  background: #fff;
+  color: var(--sage-ink);
+  border-color: var(--sage-field-line);
+}
+
+.booking-sage .air-passengers input:not([type="checkbox"]):not([type="radio"]):hover,
+.booking-sage .air-passengers select:hover,
+.booking-sage .air-passengers .air-gender-choice:hover {
+  border-color: #566f5e;
+}
+
+.booking-sage .air-passengers input:focus,
+.booking-sage .air-passengers select:focus {
+  border-color: #43634e;
+  --tw-ring-color: #43634e;
+  outline: 2px solid #43634e;
+  outline-offset: 2px;
+}
+
+.booking-sage .air-passengers .air-gender-choice.is-selected {
+  background: #d3e2d5;
+  border-color: #43634e;
+  color: #263e2e;
+}
+
+.booking-sage .air-passengers .air-gender-choice:focus-within,
+.booking-sage .air-passengers .air-baggage-option:focus-within {
+  outline-color: #43634e;
+}
+
+.booking-sage .air-passengers .border-t,
+.booking-sage .air-fare-summary .border-t {
+  border-color: var(--sage-line);
+}
+
+.booking-sage .air-passengers .air-baggage-option {
+  background: #f8fbf8;
+  border-color: #a7baac;
+  color: var(--sage-ink);
+}
+
+.booking-sage .air-passengers .air-baggage-option > svg {
+  color: #536e5d;
+}
+
+.booking-sage .air-passengers .air-baggage-option:hover {
+  background: #f0f6f0;
+  border-color: #6e8876;
+}
+
+.booking-sage .air-passengers .air-baggage-option.is-selected {
+  background: #d3e2d5;
+  border-color: #43634e;
+}
+
+.booking-sage .air-passengers .air-baggage-option.is-selected > svg {
+  color: #34543e;
+}
+
+.booking-sage .air-passengers input[type="checkbox"] {
+  accent-color: #43634e;
+}
+
+.booking-sage .air-booking .air-itinerary {
+  background: #344840 !important;
+  color: #f4f8f4 !important;
+  border-color: #344840;
+}
+
+.booking-sage .air-itinerary [class*="text-blue"] {
+  color: #d5e1d9;
+}
+
+.booking-sage .air-booking .air-itinerary > div > div:last-child {
+  border-color: #698074;
+}
+
+.booking-sage .air-itinerary .bg-emerald-500 {
+  background: #dcebdd;
+  color: #294431;
+}
+
+.booking-sage .air-fare-summary .text-emerald-700 {
+  color: #356147;
+}
+
+.booking-sage .air-fare-summary button[type="submit"] {
+  background: #dc1641 !important;
+}
+
+.booking-sage .air-fare-summary button[type="submit"]:hover {
+  background: #bf1237 !important;
+}
+
+.booking-sage .air-portal button:focus-visible {
+  outline-color: #9f1634;
+}

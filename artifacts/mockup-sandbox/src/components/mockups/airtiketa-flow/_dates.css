@@ -1,0 +1,13 @@
+.as-date-selector{margin:0 0 26px;padding:18px 0;background:var(--as-soft);border-radius:10px}
+.as-date-selector h2{font-size:14px;margin:0 16px 12px}
+.as-date-rail{display:flex;background:var(--as-paper);border-radius:8px;margin:0 10px;overflow:hidden}
+.as-date-arrow{width:30px;flex-shrink:0;display:grid;place-items:center;color:var(--as-red);background:transparent;cursor:pointer}
+.as-date-arrow svg{width:18px}
+.as-date-options{display:flex;flex:1;min-width:0;overflow-x:auto}
+.as-date-choice{flex:1;min-width:180px;padding:10px 8px 9px;text-align:center;border-top:2px solid transparent;border-right:1px solid var(--as-line);background:transparent;cursor:pointer}
+.as-date-choice span{display:block;font-size:11px;white-space:nowrap}
+.as-date-choice strong{display:block;font-size:13px;margin-top:5px}
+.as-date-choice.selected{border-top-color:var(--as-red);color:var(--as-red);background:var(--as-soft)}
+.as-date-choice:hover{background:var(--as-soft)}
+.as-date-rail button:focus-visible{outline:2px solid var(--as-red);outline-offset:-3px}
+@media(max-width:767px){.as-date-selector{margin-bottom:20px}.as-date-choice{min-width:190px}.as-date-selector h2{font-size:13px}.as-date-arrow{width:25px}}

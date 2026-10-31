@@ -1,0 +1,2 @@
+# Administrative health alert; no automatic deletion of application files.
+*/5 * * * * root /usr/local/sbin/fms-disk-watch 2>&1 | /usr/bin/logger -t fms-disk-watch

@@ -1,0 +1,12 @@
+.flights-grey-preview {
+  min-height: 100dvh;
+  width: 100%;
+  background: #e3e5e8;
+}
+.flights-grey-preview .as-flow.as-source-parity {
+  min-height: 100dvh;
+  background: #e3e5e8;
+}
+.flights-grey-preview .as-main {
+  background: transparent;
+}

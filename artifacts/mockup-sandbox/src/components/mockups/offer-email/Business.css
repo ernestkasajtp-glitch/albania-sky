@@ -1,0 +1,71 @@
+.as-business-preview {
+  --as-ink: #21333e;
+  --as-muted: #63757e;
+  --as-line: #dce4e7;
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 28px 20px 38px;
+  background: #eaf0f2;
+  color: var(--as-ink);
+  font-family: "Trebuchet MS", Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.as-business-preview *, .as-business-preview *::before, .as-business-preview *::after { box-sizing: border-box; }
+.as-business-preview .as-business-label {
+  max-width: 600px;
+  margin: 0 auto 15px;
+  color: #687b85;
+  font-size: 11px;
+  letter-spacing: .045em;
+}
+.as-business-email {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fcfdfc;
+  border: 1px solid #d7e1e5;
+}
+.as-business-masthead {
+  display: table;
+  width: 100%;
+  padding: 12px 30px;
+  background: #182c38;
+}
+.as-business-logo-cell, .as-business-brand-caption { display: table-cell; vertical-align: middle; }
+.as-business-logo { display: block; width: 152px; height: 85px; object-fit: contain; }
+.as-business-brand-caption { text-align: right; font-size: 10px; line-height: 1.7; color: #becbd1; letter-spacing: .09em; }
+.as-business-intro { padding: 31px 36px 27px; }
+.as-business-kicker { margin: 0 0 12px; font-size: 10px; color: #697e88; letter-spacing: .15em; font-weight: 700; text-transform: uppercase; }
+.as-business-intro h1 { margin: 0 0 13px; color: #21333e; font-family: Georgia, "Times New Roman", serif; font-size: 35px; line-height: 1.15; font-weight: 400; letter-spacing: -.035em; }
+.as-business-intro p:last-child { margin: 0; max-width: 440px; font-size: 13px; line-height: 1.8; color: #63757e; }
+.as-business-photo { display: block; width: 100%; height: 185px; object-fit: cover; object-position: center 53%; }
+.as-business-offer { padding: 24px 36px 26px; }
+.as-business-savings { margin-bottom: 23px; padding-bottom: 22px; border-bottom: 1px solid var(--as-line); }
+.as-business-savings strong { display: block; font-size: 39px; font-weight: 700; line-height: 1.15; letter-spacing: -.055em; color: #213f50; }
+.as-business-savings span { display: block; margin-top: 6px; font-size: 13px; color: #63757e; }
+.as-business-terms { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.as-business-terms th, .as-business-terms td { padding: 14px 0; border-bottom: 1px solid var(--as-line); text-align: left; vertical-align: top; font-size: 12px; line-height: 1.7; }
+.as-business-terms th { width: 39%; font-weight: 400; color: #63757e; padding-right: 12px; }
+.as-business-terms td { font-weight: 700; color: #273e4b; }
+.as-business-terms tr:first-child th, .as-business-terms tr:first-child td { padding-top: 0; }
+.as-business-terms tr:last-child th, .as-business-terms tr:last-child td { border-bottom: 0; padding-bottom: 0; }
+.as-business-note { margin: 23px 0; padding: 13px 15px; background: #eff3f4; border-left: 2px solid #9aadb7; font-size: 11px; line-height: 1.8; color: #5a6c76; }
+.as-business-button { display: inline-block; border: 0; border-radius: 0; padding: 15px 25px; background: #243f50; color: #f4f7f7; font-family: inherit; font-size: 12px; line-height: 1.4; font-weight: 700; cursor: pointer; }
+.as-business-button:hover { background: #31556a; }
+.as-business-button:focus-visible { outline: 3px solid #90b1c1; outline-offset: 3px; }
+.as-business-feedback { margin: 13px 0 0; color: #63757e; font-size: 11px; line-height: 1.6; }
+.as-business-footer { padding: 19px 36px 21px; border-top: 1px solid var(--as-line); }
+.as-business-footer strong { display: block; color: #4f6570; font-size: 11px; font-weight: 700; margin-bottom: 5px; }
+.as-business-footer p { margin: 0; color: #809098; font-size: 10px; line-height: 1.7; }
+@media (max-width: 480px) {
+  .as-business-preview { padding: 20px 13px 28px; }
+  .as-business-masthead { padding: 9px 19px; }
+  .as-business-logo { width: 134px; height: 75px; }
+  .as-business-brand-caption { font-size: 8px; letter-spacing: .05em; }
+  .as-business-intro { padding: 26px 24px 24px; }
+  .as-business-intro h1 { font-size: 30px; }
+  .as-business-photo { height: 170px; }
+  .as-business-offer { padding: 24px; }
+  .as-business-terms th { width: 40%; }
+  .as-business-terms th, .as-business-terms td { font-size: 11px; }
+  .as-business-footer { padding: 19px 24px; }
+}

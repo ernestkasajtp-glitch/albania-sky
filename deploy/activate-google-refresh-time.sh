@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+cd "$(dirname "$0")"
+exec 9>/root/releases/.deploy.lock
+flock -n 9
+sha256sum -c SHA256SUMS
+API=/root/artifacts/api-server/dist
+FMS=/root/artifacts/flight-system/dist/public
+PM2=/usr/lib/node_modules/pm2/bin/pm2
+(( $(df -Pk . | awk 'END{print $4}') > 524288 ))
+mkdir -p stage/api stage/fms backup
+tar -xzf api.tgz -C stage/api
+tar -xzf fms.tgz -C stage/fms
+test -s stage/api/excelWorker.mjs
+grep -q '/flight-system/assets/' stage/fms/index.html
+node -e 'if(JSON.parse(require("fs").readFileSync("stage/fms/version.json")).version!=="1.548")process.exit(1)'
+tar -czf backup/api.tgz -C "$API" .
+python3 - <<'PY'
+from pathlib import Path
+src=Path("stage/fms"); dst=Path("/root/artifacts/flight-system/dist/public")
+paths=[str(p.relative_to(src)).encode() for p in src.rglob("*") if p.is_file() and (dst/p.relative_to(src)).is_file()]
+Path("backup/fms-files").write_bytes(b"\0".join(paths)+b"\0")
+PY
+tar -czf backup/fms.tgz -C "$FMS" --null -T backup/fms-files
+gzip -t backup/api.tgz backup/fms.tgz
+restart_api() {
+  "$PM2" restart api-server --update-env
+  for i in $(seq 1 45); do
+    if curl -fsS --max-time 4 http://127.0.0.1:3000/api/healthz >/dev/null 2>&1; then return; fi
+    sleep 2
+  done
+  return 1
+}
+restore() {
+  trap - ERR
+  tar -xzf backup/api.tgz -C "$API"
+  tar -xzf backup/fms.tgz -C "$FMS"
+  restart_api
+  exit 1
+}
+trap restore ERR
+cp -a stage/api/. "$API/"
+restart_api
+cp -a stage/fms/assets/. "$FMS/assets/"
+find stage/fms -mindepth 1 -maxdepth 1 ! -name assets ! -name index.html -exec cp -a {} "$FMS/" \;
+cp stage/fms/index.html "$FMS/.index-next.html"
+chmod 644 "$FMS/.index-next.html"
+mv "$FMS/.index-next.html" "$FMS/index.html"
+curl -fsS --max-time 20 "https://kingsmanagment.com/flight-system/version.json?t=$(date +%s)" |
+ node -e 'let s="";process.stdin.on("data",c=>s+=c);process.stdin.on("end",()=>{if(JSON.parse(s).version!=="1.548")process.exit(1)})'
+trap - ERR
+rm -rf stage
+echo 'Google daily time activated: 1.548'

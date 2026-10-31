@@ -1,0 +1,68 @@
+.booking-premium-responsive {
+  container-type: inline-size;
+  container-name: booking-detail;
+  min-width: 0;
+}
+
+.booking-premium-body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.booking-premium-summary > section {
+  min-width: 0;
+}
+
+.booking-premium-main {
+  container-type: inline-size;
+  container-name: booking-main;
+}
+
+.booking-premium-responsive .booking-flight-summary-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.booking-premium-responsive .booking-flight-datetime {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.booking-premium-responsive .booking-flight-datetime strong {
+  display: block;
+}
+
+@container booking-detail (min-width: 600px) {
+  .booking-premium-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+}
+
+@container booking-detail (min-width: 1000px) {
+  .booking-premium-body {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  .booking-premium-summary {
+    grid-column: 1 / -1;
+  }
+}
+
+@container booking-detail (min-width: 1400px) {
+  .booking-premium-body {
+    grid-template-columns: 220px minmax(0, 1fr) 240px;
+  }
+  .booking-premium-summary {
+    grid-column: auto;
+    display: flex;
+    border-bottom: 0;
+    border-right: 1px solid #e2e8f0;
+  }
+}
+
+@container booking-main (min-width: 720px) {
+  .booking-premium-responsive .booking-flight-summary-grid {
+    grid-template-columns: minmax(110px, 1fr) minmax(340px, 2.2fr) minmax(100px, 1fr);
+  }
+}

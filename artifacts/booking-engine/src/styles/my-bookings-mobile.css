@@ -1,0 +1,41 @@
+@media (max-width: 767px) {
+  .my-bookings-page {overflow-wrap:anywhere}
+  .my-bookings-page .myb-tabs {flex-wrap:wrap}
+  .my-bookings-page>.max-w-6xl {padding:18px 16px}
+  .my-bookings-page>div:first-child>.max-w-6xl {padding-left:20px;padding-right:20px}
+  .my-bookings-page .myb-status-filters {margin-left:0;padding-left:0;border-left:0;flex-wrap:wrap;gap:4px;flex-basis:100%}
+  .my-bookings-page .myb-status-filters button {min-height:42px;padding:10px}
+  .my-bookings-page .myb-search {flex-wrap:wrap}
+  .my-bookings-page .myb-search>div {flex-basis:100%}
+  .my-bookings-page .myb-search input {min-height:44px;font-size:14px}
+  .my-bookings-page .myb-search select {min-height:42px;margin-left:auto}
+  .my-bookings-page .myb-bookings-list {background:transparent;border:0;box-shadow:none;overflow:visible}
+  .my-bookings-page .myb-booking {margin-bottom:12px;border:1px solid #dce4ee;border-radius:12px;overflow:hidden;background:#fff}
+  .myb-mobile-head {display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #e8edf3}
+  .myb-mobile-head>strong {font-family:monospace;font-size:14px;color:#233b59}
+  .myb-mobile-body {padding:14px 16px 0}
+  .myb-mobile-body h3 {font-size:18px;font-weight:650;line-height:1.4;color:#142c49}
+  .myb-mobile-email {margin-top:3px;font-size:12px;color:#687b90}
+  .myb-mobile-route {display:flex;align-items:center;gap:12px;margin:17px 0 8px;font-size:22px;font-weight:700;color:#142c49}
+  .myb-mobile-route svg {flex-shrink:0;color:#879bb5}
+  .myb-mobile-meta {display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;color:#65768a;margin-bottom:8px}
+  .myb-mobile-money {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:15px;border-top:1px solid #e4eaf1;padding:14px 0}
+  .myb-mobile-money>div+div {padding-left:10px;border-left:1px solid #e4eaf1}
+  .myb-mobile-money span {display:block;font-size:11px;color:#65768a;margin-bottom:5px}
+  .myb-mobile-money strong {font-size:17px;font-weight:650;font-variant-numeric:tabular-nums}
+  .myb-mobile-expand {width:100%;min-height:44px;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid #e6ecf3;background:#f6f8fc;color:#364f6e;font-size:12px;font-weight:600;text-align:left}
+  .myb-mobile-expand:focus-visible {outline:2px solid #1a3a6b;outline-offset:-3px}
+  .my-bookings-page .myb-expanded {padding:16px}
+  .my-bookings-page .myb-expanded .grid {min-width:0}
+  .my-bookings-page .myb-payment-row {grid-template-columns:minmax(0,1fr) auto;gap:6px}
+  .my-bookings-page .myb-payment-row>div:nth-child(2) {grid-column:1;grid-row:2;overflow-wrap:anywhere;min-width:0}
+  .my-bookings-page .myb-payment-row>div:last-child {grid-column:2;grid-row:1}
+  .my-bookings-page .myb-payment-head {display:none}
+  .my-bookings-page .myb-booking-actions {flex-direction:column}
+  .my-bookings-page .myb-booking-actions button {justify-content:center;min-height:44px;font-size:13px}
+  .my-bookings-page .myb-filtered-totals {display:block;border-radius:10px;padding:16px}
+  .my-bookings-page .myb-filtered-totals>div:last-child {display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .my-bookings-page nav[aria-label] {padding:12px 0}
+  .my-bookings-page nav[aria-label] button {min-height:44px}
+  .my-bookings-page .myb-report-toggle {display:flex;width:100%;justify-content:space-between;align-items:center;min-height:44px;margin-bottom:12px;color:white;font-size:13px;text-align:left}
+}

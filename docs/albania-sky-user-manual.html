@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Albania Sky — User Manual</title>
+<style>
+  :root {
+    --navy: #0b1f3a;
+    --navy2: #1a3a6b;
+    --sky: #2e6bd6;
+    --gold: #c9a44a;
+    --ink: #1c2733;
+    --muted: #5b6b7d;
+    --line: #e3e8ef;
+    --bg-soft: #f5f8fc;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    font-size: 13.5px;
+    line-height: 1.6;
+    background: #fff;
+  }
+  h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 .4em; color: var(--navy); }
+  p { margin: 0 0 .7em; }
+  ul, ol { margin: 0 0 .8em; padding-left: 1.25em; }
+  li { margin: .25em 0; }
+  strong { color: var(--navy); }
+  a { color: var(--sky); text-decoration: none; }
+
+  .page { padding: 26px 40px 40px; }
+  .page-break { page-break-before: always; }
+
+  /* ---------- Cover ---------- */
+  .cover {
+    height: 100vh;
+    background: linear-gradient(150deg, var(--navy) 0%, var(--navy2) 55%, #244a86 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: "✈";
+    position: absolute;
+    right: -40px; bottom: -60px;
+    font-size: 420px;
+    color: rgba(255,255,255,0.05);
+    transform: rotate(-15deg);
+  }
+  .cover .kicker {
+    letter-spacing: 4px; font-size: 12px; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin-bottom: 18px;
+  }
+  .cover h1 { color: #fff; font-size: 58px; font-weight: 800; margin: 0; letter-spacing: -1px; }
+  .cover .brand-mark { font-size: 30px; font-weight: 800; letter-spacing: 1px; margin-bottom: 40px; }
+  .cover .brand-mark span { color: var(--gold); }
+  .cover .sub { font-size: 18px; color: rgba(255,255,255,0.82); margin-top: 14px; max-width: 520px; }
+  .cover .meta { position: absolute; bottom: 48px; left: 60px; font-size: 12.5px; color: rgba(255,255,255,0.65); }
+  .cover .meta b { color: #fff; }
+
+  /* ---------- Headings / sections ---------- */
+  .sec-num {
+    display: inline-block; background: var(--navy); color: #fff;
+    width: 30px; height: 30px; border-radius: 8px; text-align: center;
+    line-height: 30px; font-weight: 800; font-size: 15px; margin-right: 12px;
+  }
+  h2.section { font-size: 24px; display: flex; align-items: center; border-bottom: 3px solid var(--gold); padding-bottom: 12px; margin-bottom: 18px; }
+  h3 { font-size: 16.5px; margin-top: 18px; color: var(--navy2); }
+  h4 { font-size: 14px; color: var(--sky); margin-top: 14px; }
+
+  /* ---------- Components ---------- */
+  .lead { font-size: 15px; color: var(--muted); margin-bottom: 16px; }
+  .card {
+    background: var(--bg-soft); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px 20px; margin: 12px 0;
+  }
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps > li {
+    position: relative; padding-left: 42px; margin: 12px 0; min-height: 28px;
+  }
+  .steps > li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 0;
+    background: linear-gradient(135deg, var(--navy), var(--sky));
+    color: #fff; width: 28px; height: 28px; border-radius: 50%;
+    text-align: center; line-height: 28px; font-weight: 700; font-size: 13px;
+  }
+  .tip, .note, .warn {
+    border-radius: 10px; padding: 12px 16px; margin: 12px 0; font-size: 13px;
+    border-left: 4px solid;
+  }
+  .tip { background: #eef7ef; border-color: #3a9d5d; }
+  .note { background: #eef3fb; border-color: var(--sky); }
+  .warn { background: #fdf3ec; border-color: #d98324; }
+  .tip b, .note b, .warn b { display: block; margin-bottom: 2px; }
+
+  .pill {
+    display: inline-block; background: var(--navy); color: #fff;
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    margin-right: 6px; letter-spacing: .3px;
+  }
+  .pill.gold { background: var(--gold); color: var(--navy); }
+  .pill.sky { background: var(--sky); }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--navy); color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: var(--bg-soft); }
+
+  .two-col { display: flex; gap: 18px; }
+  .two-col > div { flex: 1; }
+
+  .toc { list-style: none; padding-left: 0; }
+  .toc li { display: flex; justify-content: space-between; padding: 9px 4px; border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .toc li span:first-child { font-weight: 600; color: var(--navy); }
+  .toc .n { color: var(--gold); font-weight: 800; margin-right: 10px; }
+
+  .footer-note { margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); }
+
+  @page { margin: 14mm 0; }
+  @media print {
+    .cover { height: 247mm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<section class="cover">
+  <div class="brand-mark">✈ ALBANIA <span>SKY</span></div>
+  <div class="kicker">Flight Booking Portal</div>
+  <h1>User Manual</h1>
+  <div class="sub">A complete, step-by-step guide to searching, booking, paying for, and managing flights on the Albania Sky portal — for travelers and travel agents.</div>
+  <div class="meta">
+    <div><b>albaniasky.com</b></div>
+    <div>Edition 1.0 &middot; 2026</div>
+  </div>
+</section>
+
+<!-- ===================== TABLE OF CONTENTS ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">≡</span> Contents</h2>
+  <ul class="toc">
+    <li><span><span class="n">1</span>Welcome to Albania Sky</span><span>03</span></li>
+    <li><span><span class="n">2</span>Getting Started &amp; Language</span><span>03</span></li>
+    <li><span><span class="n">3</span>Creating an Account</span><span>04</span></li>
+    <li><span><span class="n">4</span>Logging In</span><span>05</span></li>
+    <li><span><span class="n">5</span>Searching for Flights</span><span>05</span></li>
+    <li><span><span class="n">6</span>Browsing Search Results</span><span>06</span></li>
+    <li><span><span class="n">7</span>Booking a Flight</span><span>07</span></li>
+    <li><span><span class="n">8</span>Paying for Your Booking</span><span>08</span></li>
+    <li><span><span class="n">9</span>My Bookings</span><span>09</span></li>
+    <li><span><span class="n">10</span>Booking Details &amp; Paying a Balance</span><span>10</span></li>
+    <li><span><span class="n">11</span>Tickets &amp; Vouchers</span><span>11</span></li>
+    <li><span><span class="n">12</span>For Travel Agents</span><span>11</span></li>
+    <li><span><span class="n">13</span>Frequently Asked Questions</span><span>12</span></li>
+    <li><span><span class="n">14</span>Support</span><span>12</span></li>
+  </ul>
+</section>
+
+<!-- ===================== 1. WELCOME ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">1</span> Welcome to Albania Sky</h2>
+  <p class="lead">Albania Sky is an online flight booking portal where you can search live flights, reserve seats, pay securely by card, and manage every booking in one place.</p>
+  <p>The portal is designed for two kinds of users:</p>
+  <div class="two-col">
+    <div class="card">
+      <span class="pill sky">Travelers</span>
+      <p style="margin-top:10px;">Individuals booking flights for themselves, family, or friends. You get instant booking references, secure card payment, and downloadable travel documents.</p>
+    </div>
+    <div class="card">
+      <span class="pill gold">Travel Agents</span>
+      <p style="margin-top:10px;">Travel agencies booking on behalf of clients. Agents get special pricing/discounts, credit-based confirmation, and a transactions view to track price changes.</p>
+    </div>
+  </div>
+  <div class="note"><b>What you can do</b>Search flights · book with full passenger details and extras · pay in full or leave a balance · pay later by card · download tickets &amp; vouchers · track payments and outstanding balances.</div>
+
+  <h2 class="section" style="margin-top:34px;"><span class="sec-num">2</span> Getting Started &amp; Language</h2>
+  <h3>Opening the portal</h3>
+  <p>Open your web browser (Chrome, Safari, Edge, or Firefox) and go to:</p>
+  <div class="card" style="text-align:center; font-size:18px; font-weight:700; color:var(--navy);">albaniasky.com</div>
+  <p>The portal works on computers, tablets, and phones. No installation is required.</p>
+
+  <h3>Choosing your language</h3>
+  <p>Albania Sky is available in <strong>Albanian (SQ)</strong> and <strong>English (EN)</strong>. Use the language switch in the top navigation bar to change it at any time. Your choice is remembered the next time you visit.</p>
+  <div class="tip"><b>Tip</b>The language toggle is in the top-right of every page. On a phone, open the menu (☰) to find it.</div>
+</section>
+
+<!-- ===================== 3. ACCOUNT ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">3</span> Creating an Account</h2>
+  <p class="lead">You can browse and search flights without an account, but you need one to complete a booking and to access <strong>My Bookings</strong>.</p>
+  <ol class="steps">
+    <li>Click <strong>Register</strong> in the top navigation bar.</li>
+    <li>Choose your account type at the top of the form:
+      <strong>Traveler</strong> (individual) or <strong>Travel Agent</strong>.</li>
+    <li>Fill in your details (see the table below).</li>
+    <li>Click the register button. You can now log in and start booking.</li>
+  </ol>
+
+  <h3>Registration fields</h3>
+  <table>
+    <tr><th>Field</th><th>Required for</th><th>Notes</th></tr>
+    <tr><td>Full name</td><td>Everyone</td><td>Your name or contact person.</td></tr>
+    <tr><td>Email</td><td>Everyone</td><td>Used to log in and for booking confirmations.</td></tr>
+    <tr><td>Password</td><td>Everyone</td><td>Minimum 6 characters.</td></tr>
+    <tr><td>Phone</td><td>Everyone</td><td>For contact about your bookings.</td></tr>
+    <tr><td>Agency name</td><td>Agents</td><td>The name of your travel agency.</td></tr>
+    <tr><td>NIPT (Tax ID)</td><td>Agents</td><td>Your business tax identification number.</td></tr>
+  </table>
+
+  <div class="warn"><b>Agent accounts</b>Travel-agent accounts may need to be activated by an administrator before agent pricing and credit booking become available. If your agent features are not visible yet, contact support to confirm activation.</div>
+
+  <h2 class="section" style="margin-top:34px;"><span class="sec-num">4</span> Logging In</h2>
+  <ol class="steps">
+    <li>Click <strong>Login</strong> in the top navigation bar.</li>
+    <li>Enter your <strong>email</strong> and <strong>password</strong>. Use the eye icon to reveal the password if needed.</li>
+    <li>Click <strong>Login</strong>. You are returned to the page you were on before.</li>
+  </ol>
+  <p>When you are logged in, the navigation bar shows your name, a <span class="pill gold">Agent</span> badge (for agents), the <strong>My Bookings</strong> link, and a <strong>Logout</strong> button.</p>
+</section>
+
+<!-- ===================== 5. SEARCH ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">5</span> Searching for Flights</h2>
+  <p class="lead">The search form on the home page is the starting point for every booking.</p>
+  <ol class="steps">
+    <li><strong>From / To:</strong> Start typing a city or airport and pick it from the suggestions. The destination list updates to show only places Albania Sky flies to from your chosen origin.</li>
+    <li><strong>Date:</strong> Open the calendar and choose your travel date. Where available, the calendar shows the lowest price for each day so you can spot cheaper dates.</li>
+    <li><strong>Passengers:</strong> Set how many travelers are flying:
+      <ul>
+        <li><strong>Adult</strong> — age 12 and over (at least 1 required)</li>
+        <li><strong>Child</strong> — ages 2 to 11</li>
+        <li><strong>Infant</strong> — under 2 years</li>
+      </ul>
+    </li>
+    <li>Click <strong>Search</strong> to see matching flights.</li>
+  </ol>
+  <div class="tip"><b>Shortcut</b>The home page also shows popular destinations with sample prices. Clicking one fills the search form for you and jumps straight to results.</div>
+
+  <h2 class="section" style="margin-top:34px;"><span class="sec-num">6</span> Browsing Search Results</h2>
+  <p>Each result shows the airline, flight number, departure and arrival times, the route, the date, and the price per adult.</p>
+  <ul>
+    <li><strong>Card or list view:</strong> Use the toggle at the top to switch between a visual card layout and a compact list.</li>
+    <li><strong>Adjust your search:</strong> A compact search bar stays at the top so you can change cities, date, or passengers without going back.</li>
+    <li><strong>Availability:</strong> A flight marked <strong>Sold Out</strong> has no seats left and cannot be selected.</li>
+    <li><strong>Agent pricing:</strong> If you are logged in as an agent, your discounted price is shown next to the standard price.</li>
+  </ul>
+  <p>When you find the right flight, click <strong>Select</strong> to continue to the booking form.</p>
+</section>
+
+<!-- ===================== 7. BOOKING ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">7</span> Booking a Flight</h2>
+  <p class="lead">On the booking page you enter passenger details, choose any extras, and confirm.</p>
+
+  <h3>Step 1 — Passenger details</h3>
+  <p>Complete a section for each traveler. Fields include:</p>
+  <ul>
+    <li><strong>First name</strong> and <strong>Last name</strong> — exactly as in the passport</li>
+    <li><strong>Passport number</strong></li>
+    <li><strong>Nationality</strong></li>
+    <li><strong>Date of birth</strong></li>
+  </ul>
+  <div class="warn"><b>Important</b>Names must match the travel document exactly. Airlines may refuse boarding if the name on the ticket does not match the passport.</div>
+
+  <h3>Step 2 — Extras (optional)</h3>
+  <p>For each passenger you can add: checked baggage, seat selection, priority boarding, and travel insurance. Extras are added to the total automatically.</p>
+
+  <h3>Step 3 — Contact information</h3>
+  <p>Provide a contact name, email, and phone so we can reach you about the booking and send confirmations.</p>
+
+  <h3>Step 4 — Confirm</h3>
+  <p>You have two ways to finish, depending on whether you want to pay now:</p>
+  <table>
+    <tr><th>Button</th><th>What it does</th></tr>
+    <tr><td><strong>Confirm Booking</strong></td><td>Creates the booking and holds it. The status becomes <em>Pending</em> (or <em>Confirmed</em> for agents booking on credit). You can pay later from the booking details.</td></tr>
+    <tr><td><strong>Pay and Book</strong></td><td>Creates the booking and immediately opens secure card payment (POK) to pay in full now.</td></tr>
+  </table>
+  <div class="note"><b>Not logged in?</b>If you start a booking without being logged in, your details are saved and you are taken to the login page. After signing in, your booking continues right where you left off.</div>
+  <p>After a successful booking you receive a <strong>booking reference</strong> and can download your ticket immediately or go to <strong>My Bookings</strong>.</p>
+</section>
+
+<!-- ===================== 8. PAYMENT ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">8</span> Paying for Your Booking</h2>
+  <p class="lead">Albania Sky accepts secure online card payments through the <strong>POK</strong> payment gateway. Your card details are entered on POK's secure page — Albania Sky never stores your card number.</p>
+
+  <h3>Where you can pay by card</h3>
+  <table>
+    <tr><th>Place</th><th>When the card option appears</th></tr>
+    <tr><td>During booking — <strong>Pay and Book</strong></td><td>Right after you create a new booking, to pay in full immediately.</td></tr>
+    <tr><td>Booking details — <strong>Pay by Card</strong></td><td>On an existing booking whenever there is an outstanding balance to pay.</td></tr>
+  </table>
+
+  <h3>How card payment works</h3>
+  <ol class="steps">
+    <li>Click <strong>Pay and Book</strong> or <strong>Pay by Card</strong>.</li>
+    <li>You are redirected to the secure POK payment page.</li>
+    <li>Enter your card details and confirm the payment.</li>
+    <li>You are returned to Albania Sky, where the payment is verified automatically.</li>
+    <li>On success you see a confirmation with the amount paid and the updated balance. If a payment fails, you can simply try again.</li>
+  </ol>
+  <div class="tip"><b>Secured by POK Pay · SSL</b>All card payments are processed over an encrypted connection by the POK payment gateway.</div>
+
+  <h3>Paying part now, part later</h3>
+  <p>You don't always have to pay the full amount at once. A booking can have a remaining <strong>balance</strong>, which you can settle later by card from the booking details page (see Section 10).</p>
+</section>
+
+<!-- ===================== 9. MY BOOKINGS ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">9</span> My Bookings</h2>
+  <p class="lead">Open <strong>My Bookings</strong> from the navigation bar to see and manage everything you have booked.</p>
+
+  <h3>Summary at a glance</h3>
+  <p>The top of the page summarizes your activity: total number of bookings, total amount, amount already paid, and the outstanding balance still due.</p>
+
+  <h3>The bookings list</h3>
+  <p>Each row shows:</p>
+  <ul>
+    <li><strong>Reference</strong> — the unique booking code</li>
+    <li><strong>Customer</strong> and <strong>route</strong></li>
+    <li><strong>Travel date</strong></li>
+    <li><strong>Status</strong> — Draft, Pending, Confirmed, Ticketed, or Cancelled</li>
+    <li><strong>Amount</strong> and any <strong>balance due</strong></li>
+  </ul>
+  <p>Click any booking to expand a quick <strong>financial summary</strong> (with a paid/remaining progress bar) and its <strong>payment history</strong>. To open the full page, go into the booking details.</p>
+
+  <h3>Booking statuses explained</h3>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td>Draft</td><td>Started but not yet submitted.</td></tr>
+    <tr><td>Pending</td><td>Submitted and awaiting confirmation/payment.</td></tr>
+    <tr><td>Confirmed</td><td>Confirmed by Albania Sky.</td></tr>
+    <tr><td>Ticketed</td><td>Tickets issued — travel documents available.</td></tr>
+    <tr><td>Cancelled</td><td>The booking was cancelled.</td></tr>
+  </table>
+  <div class="note"><b>Agents</b>A second tab, <strong>Price Changes</strong>, lists any increases or decreases applied to your bookings so you can track them.</div>
+</section>
+
+<!-- ===================== 10. BOOKING DETAIL ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">10</span> Booking Details &amp; Paying a Balance</h2>
+  <p class="lead">Click a booking to open its full details page. This is where you review everything and pay any remaining balance.</p>
+
+  <h3>What the details page shows</h3>
+  <ul>
+    <li><strong>Header</strong> — booking reference, PNR (airline reference, when available), and the current status.</li>
+    <li><strong>Flight information</strong> — route, airline, times, and airport codes.</li>
+    <li><strong>Passengers</strong> — each traveler with their baggage, seat, and other extras.</li>
+    <li><strong>Financial summary</strong> — total amount, amount paid, and balance due.</li>
+    <li><strong>Payment history</strong> — every payment recorded against the booking.</li>
+  </ul>
+
+  <h3>Paying the remaining balance</h3>
+  <p>When a booking still has money owing, a purple <strong>Pay by Card</strong> button appears in the financial summary.</p>
+  <ol class="steps">
+    <li>Open the booking from <strong>My Bookings</strong>.</li>
+    <li>Check the <strong>Remaining</strong> amount in the financial summary.</li>
+    <li>Click <strong>Pay by Card</strong> to pay the balance securely via POK (see Section 8).</li>
+    <li>After payment, the balance updates and the booking shows as settled when fully paid.</li>
+  </ol>
+  <div class="note"><b>Good to know</b>The <strong>Pay by Card</strong> button only appears when there is a balance owing and the booking is not cancelled. A fully paid booking shows as <em>Settled</em>.</div>
+</section>
+
+<!-- ===================== 11. DOCUMENTS ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">11</span> Tickets &amp; Vouchers</h2>
+  <p class="lead">Albania Sky gives you two printable documents. Both can be saved as PDF or printed from your browser.</p>
+  <div class="two-col">
+    <div class="card">
+      <h4 style="margin-top:0;">Ticket</h4>
+      <p>A detailed document with the flight breakdown and price totals (ticket fare, taxes, extras, and any agent discount). Use this as your booking record.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin-top:0;">Voucher (Booking Confirmation)</h4>
+      <p>A clean, branded confirmation showing the PNR and who is traveling. It clearly states that it is <em>not</em> a boarding pass.</p>
+    </div>
+  </div>
+  <h3>How to download or print</h3>
+  <ol class="steps">
+    <li>Open the booking (after booking, or from <strong>My Bookings</strong>).</li>
+    <li>Click the <strong>Download / Print</strong> option for the ticket or voucher.</li>
+    <li>In the print window, choose your printer — or select <strong>Save as PDF</strong> to keep a digital copy.</li>
+  </ol>
+  <div class="warn"><b>Remember</b>The voucher is a confirmation, not a boarding pass. You still check in with the airline and obtain a boarding pass before your flight.</div>
+
+  <h2 class="section" style="margin-top:34px;"><span class="sec-num">12</span> For Travel Agents</h2>
+  <p>Agent accounts unlock features tailored to agencies:</p>
+  <ul>
+    <li><strong>Special pricing</strong> — discounted fares (fixed amount or percentage) are shown alongside standard prices in search results.</li>
+    <li><strong>Credit booking</strong> — eligible agents can confirm bookings on credit rather than paying immediately.</li>
+    <li><strong>Price-change tracking</strong> — the <strong>Price Changes</strong> tab in My Bookings lists increases and decreases applied to your bookings.</li>
+    <li><strong>Agency details</strong> — your agency name and NIPT are kept on your profile for invoicing.</li>
+  </ul>
+  <div class="warn"><b>Activation</b>If agent pricing or credit options are missing, your account may still be pending activation by an administrator. Contact support to confirm.</div>
+</section>
+
+<!-- ===================== 13. FAQ ===================== -->
+<section class="page page-break">
+  <h2 class="section"><span class="sec-num">13</span> Frequently Asked Questions</h2>
+
+  <h4>Do I need an account to search flights?</h4>
+  <p>No. You can search and browse freely. An account is needed only to complete a booking and to use My Bookings.</p>
+
+  <h4>My card payment failed — what now?</h4>
+  <p>Nothing is lost. Return to the booking and click <strong>Pay by Card</strong> again. If it keeps failing, check your card details and available funds, or contact support.</p>
+
+  <h4>Can I pay later instead of all at once?</h4>
+  <p>Yes. Use <strong>Confirm Booking</strong> to reserve, then pay the balance by card later from the booking details page.</p>
+
+  <h4>Is my card information safe?</h4>
+  <p>Yes. Card details are entered on the secure POK payment page over an encrypted (SSL) connection. Albania Sky does not store your card number.</p>
+
+  <h4>I can't see my booking.</h4>
+  <p>Make sure you are logged in with the same email used to make the booking, then open <strong>My Bookings</strong>.</p>
+
+  <h4>The name on a passenger is wrong.</h4>
+  <p>Contact support as soon as possible. Name corrections may be subject to airline rules and fees.</p>
+
+  <h4>Why is a flight marked "Sold Out"?</h4>
+  <p>All seats for that flight are taken. Try a different date or a nearby route.</p>
+
+  <h2 class="section" style="margin-top:34px;"><span class="sec-num">14</span> Support</h2>
+  <p>Need help? Reach the Albania Sky team and we'll assist with bookings, payments, changes, and account activation.</p>
+  <div class="card" style="text-align:center;">
+    <div style="font-size:20px; font-weight:800; color:var(--navy);">✈ Albania Sky</div>
+    <div style="color:var(--muted); margin-top:4px;">albaniasky.com</div>
+  </div>
+
+  <div class="footer-note">
+    Albania Sky — User Manual · Edition 1.0 · 2026. This guide describes the standard features of the Albania Sky booking portal. Screens and options may vary slightly depending on your account type and updates to the service.
+  </div>
+</section>
+
+</body>
+</html>

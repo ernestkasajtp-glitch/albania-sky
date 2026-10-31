@@ -1,0 +1,95 @@
+/* Preview-only skin. Geometry, typography, cards and page content stay baseline. */
+.nav-gold-theme {
+  --gold-nav: #112343;
+  --gold-selected: #e6c27c;
+  --gold-ink: #684c17;
+  --gold-tile: #fbf5e5;
+}
+
+.nav-gold-theme aside {
+  background: linear-gradient(180deg, #112343 0%, #0f2040 55%, #0c1f40 100%) !important;
+  border-color: #253552 !important;
+}
+
+.nav-gold-theme aside > .border-b,
+.nav-gold-theme aside > .border-t {
+  border-color: #253552 !important;
+}
+
+.nav-gold-theme aside .text-slate-800,
+.nav-gold-theme aside .text-slate-700 {
+  color: #f4f7fc;
+}
+
+.nav-gold-theme aside .text-slate-400 {
+  color: #b8c9df;
+}
+
+.nav-gold-theme aside nav > a {
+  color: #e4e7ee !important;
+}
+
+.nav-gold-theme aside nav > a > span > svg {
+  color: currentColor !important;
+  stroke-width: 1.8;
+}
+
+.nav-gold-theme aside nav > a:hover {
+  background-color: #1d3051;
+}
+
+.nav-gold-theme aside nav > a[href="/bookings"] {
+  background: linear-gradient(110deg, #f3d185 0%, #e6c27c 50%, #d8b26f 100%) !important;
+  color: #252c38 !important;
+}
+
+.nav-gold-theme aside nav > a[href="/bookings"]:hover {
+  background: linear-gradient(110deg, #f3d185 0%, #e6c27c 50%, #d8b26f 100%) !important;
+}
+
+.nav-gold-theme aside nav > a[href="/bookings"] > span.absolute {
+  background-color: #b28b37 !important;
+}
+
+/* Hairline group dividers without changing navigation spacing or labels. */
+.nav-gold-theme aside nav > a:is([href="/bookings"], [href="/assistant"], [href="/users"]) {
+  box-shadow: 0 -1px 0 #ffffff0d;
+}
+
+.nav-gold-theme aside > button {
+  background-color: #f1f3f6;
+  color: #526078;
+  border-color: #d5dae3;
+}
+
+.nav-gold-theme aside > button:hover {
+  background-color: #ffffff;
+}
+
+.nav-gold-theme aside button[title="Dil"] {
+  color: #c5d2e3;
+}
+
+.nav-gold-theme aside button[title="Dil"]:hover {
+  background-color: #173550;
+  color: #f1f5fc;
+}
+
+/* Only the existing 36px icon tiles; leave full stat cards and halos intact. */
+.nav-gold-theme main .grid.grid-cols-2 > .group > .flex > .w-9 {
+  background: var(--gold-tile);
+  box-shadow: none;
+}
+
+.nav-gold-theme main .grid.grid-cols-2 > .group > .flex > .w-9 > svg {
+  color: var(--gold-ink);
+  stroke-width: 1.8;
+}
+
+.nav-gold-theme main .grid.grid-cols-2 > .group:last-child > .flex > .w-9 {
+  background: #e4f2fc;
+}
+
+.nav-gold-theme main .grid.grid-cols-2 > .group:last-child > .flex > .w-9 > svg {
+  color: #1475cd;
+}

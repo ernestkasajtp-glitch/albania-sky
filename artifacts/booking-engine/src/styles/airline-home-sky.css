@@ -1,0 +1,70 @@
+/* Scoped to the approved homepage variant; no runtime image service. */
+.ah-sky {
+  min-height:100dvh;
+  overflow-wrap:break-word;
+}
+.ah-sky .ah-hero {
+  background:
+    linear-gradient(90deg,rgba(7,26,51,.87) 0%,rgba(9,32,59,.64) 38%,rgba(9,32,59,.16) 75%,rgba(9,32,59,.1) 100%),
+    url("../assets/wing-sky.webp") center 48% / cover no-repeat!important;
+  border-bottom:0;
+}
+.ah-sky .ah-hero-inner {
+  padding-top:45px;
+  padding-bottom:36px;
+}
+.ah-sky .ah-hero-inner>div:first-child {
+  background:rgba(13,36,63,.48);
+  border-color:rgba(235,242,249,.25);
+}
+.ah-sky .ah-hero-inner>div:first-child svg,
+.ah-sky .ah-hero-inner>div:first-child span {
+  color:#f7f3f2;
+}
+.ah-sky .ah-hero h1 {
+  color:#fffdfb;
+  text-shadow:0 2px 12px rgba(6,22,42,.16);
+  max-width:710px;
+}
+.ah-sky .ah-hero h1 span {
+  color:#ff5272;
+}
+.ah-sky .ah-hero-inner>p {
+  color:#edf2f8;
+  max-width:580px;
+  margin-bottom:34px;
+}
+.ah-sky .ah-search {
+  background:#fffdfb;
+  border-color:rgba(255,253,251,.8);
+  box-shadow:0 12px 32px rgba(9,25,47,.12);
+}
+.ah-sky .ah-search button[type="submit"]:disabled {
+  opacity:.75;
+}
+.ah-sky .ah-stats {
+  background:#fffdfb;
+}
+.ah-sky *,
+.ah-sky *::before,
+.ah-sky *::after {
+  animation:none!important;
+  transition:none!important;
+}
+@media(max-width:767px) {
+  .ah-sky {max-width:100%;overflow-x:clip}
+  .ah-sky .ah-hero {
+    background:
+      linear-gradient(180deg,rgba(7,26,51,.72) 0%,rgba(9,32,59,.32) 39%,rgba(9,32,59,.46) 100%),
+      url("../assets/wing-sky.webp") 64% top / auto 390px no-repeat,
+      #15334d!important;
+  }
+  .ah-sky .ah-hero-inner {padding:30px 18px 26px;min-width:0}
+  .ah-sky .ah-hero h1 {font-size:39px;max-width:340px}
+  .ah-sky .ah-hero-inner>p {max-width:320px;margin-bottom:25px}
+  .ah-sky .ah-search {padding:19px;min-width:0}
+  .ah-sky .ah-search>div:first-child>div {min-width:0}
+  .ah-sky .ah-stats>div {grid-template-columns:1fr 1fr;gap:22px 14px;padding:0 18px}
+  .ah-sky .ah-stats>div>div {padding:0;gap:8px;text-align:left;align-items:flex-start;flex-direction:column}
+  .ah-sky .ah-stats .text-sm {font-size:11px}
+}
