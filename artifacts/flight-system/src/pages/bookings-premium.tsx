@@ -68,28 +68,19 @@ function StatCard({ label, value, delta, deltaDir, icon: Icon, accent, kind }: {
   label: string; value: string; delta?: string; deltaDir?: "up" | "down" | "flat"; icon: any; accent: string;
   kind?: "bookings" | "sales" | "profit" | "unpaid" | "pax";
 }) {
-  const { themeId } = useTheme();
-  const gold = themeId === "navyGold";
-  const Glyph = gold && kind ? ({ bookings: ClipboardList, sales: Banknote, profit: Percent, unpaid: FileClock, pax: Users }[kind]) : Icon;
   const deltaCls = deltaDir === "up" ? "text-emerald-600 bg-emerald-50"
     : deltaDir === "down" ? "text-rose-600 bg-rose-50"
     : "text-slate-500 bg-slate-100";
   const DeltaIcon = deltaDir === "up" ? ArrowUpRight : deltaDir === "down" ? ArrowDownRight : TrendingUp;
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-4 hover:shadow-md hover:border-slate-300 transition-all group relative overflow-hidden">
-      <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full ${accent} opacity-[0.08] group-hover:opacity-[0.14] transition-opacity`} />
-      <div className="flex items-start justify-between mb-3">
-        <div data-kind={kind} className={`w-9 h-9 rounded-xl ${gold ? "navy-stat-icon" : accent} flex items-center justify-center shadow-sm`}>
-          <Glyph className="w-4 h-4 text-white" />
-        </div>
-        {delta && (
-          <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 ${deltaCls}`}>
-            <DeltaIcon className="w-3 h-3" /> {delta}
-          </span>
-        )}
-      </div>
-      <div className="text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1">{label}</div>
-      <div className="text-2xl font-bold text-slate-900 tabular-nums tracking-tight">{value}</div>
+    <div className="flex items-baseline gap-3 px-4 py-2.5 min-w-0">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{label}</span>
+      {delta && (
+        <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 ${deltaCls}`}>
+          <DeltaIcon className="w-3 h-3" /> {delta}
+        </span>
+      )}
+      <span className={`ml-auto text-xl font-bold tabular-nums tracking-tight ${kind === "unpaid" ? "text-rose-600" : "text-slate-900"}`}>{value}</span>
     </div>
   );
 }
@@ -106,7 +97,17 @@ export default function BookingsListPremium() {
   const [flightSearch, setFlightSearch] = useState("");
   const todayISO = format(new Date(), "yyyy-MM-dd");
   const [dateFrom, setDateFrom] = useState(todayISO);
+  const [customRange, setCustomRange] = useState(false);
   const [dateTo, setDateTo] = useState(todayISO);
+  const showCustomRange = (() => {
+    if (customRange) return true;
+    if (!dateFrom && !dateTo) return false;
+    const day = (n: number) => format(new Date(Date.now() - n * 864e5), "yyyy-MM-dd");
+    const today = day(0);
+    if (dateFrom === dateTo && (dateFrom === today || dateFrom === day(1))) return false;
+    if (dateTo === today && (dateFrom === day(6) || dateFrom === day(29))) return false;
+    return true;
+  })();
   // Filtri i datës së FLUTURIMIT (nisja) — vlen edhe gjatë kërkimit tekstual
   const [flightDateFrom, setFlightDateFrom] = useState("");
   const [flightDateTo, setFlightDateTo] = useState("");
@@ -510,7 +511,7 @@ export default function BookingsListPremium() {
         {/* Stats */}
         {visibleStatCount > 0 && (
           <div className="space-y-2">
-            <div className={`grid grid-cols-2 ${visibleStatCount >= 5 ? "lg:grid-cols-5" : visibleStatCount === 4 ? "lg:grid-cols-4" : visibleStatCount === 3 ? "lg:grid-cols-3" : visibleStatCount === 2 ? "lg:grid-cols-2" : "lg:grid-cols-1"} gap-3`}>
+            <div className={`grid grid-cols-2 ${visibleStatCount >= 5 ? "lg:grid-cols-5" : visibleStatCount === 4 ? "lg:grid-cols-4" : visibleStatCount === 3 ? "lg:grid-cols-3" : visibleStatCount === 2 ? "lg:grid-cols-2" : "lg:grid-cols-1"} bg-white rounded-xl border border-slate-200 divide-x divide-slate-200 overflow-hidden`}>
               {canStatBookings && (
                 <StatCard kind="bookings" label={`Rezervime ${periodLabel}`} value={String(stats.periodCount)} icon={Users} accent="bg-gradient-to-br from-blue-500 to-indigo-600" />
               )}
@@ -537,7 +538,7 @@ export default function BookingsListPremium() {
         )}
 
         {/* Filters bar */}
-      <div className="page-filter-panel bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm space-y-2">
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             {canSearchBookings && (
             <div className="relative flex-1 min-w-[220px] max-w-md">
@@ -802,6 +803,7 @@ export default function BookingsListPremium() {
                   ["7d",     "7 ditët",    () => { setDateFrom(format(new Date(Date.now() - 6*864e5), "yyyy-MM-dd")); setDateTo(format(new Date(), "yyyy-MM-dd")); }],
                   ["30d",    "30 ditët",   () => { setDateFrom(format(new Date(Date.now() - 29*864e5), "yyyy-MM-dd")); setDateTo(format(new Date(), "yyyy-MM-dd")); }],
                   ["all",    "Të gjitha",  () => { setDateFrom(""); setDateTo(""); }],
+                  ["custom", "Periudhë…",  () => {}],
                 ] as const).map(([key, label, fn]) => {
                   const today = format(new Date(), "yyyy-MM-dd");
                   const yest = format(new Date(Date.now() - 864e5), "yyyy-MM-dd");
@@ -813,11 +815,12 @@ export default function BookingsListPremium() {
                     (key === "7d"    && dateFrom === d7    && dateTo === today) ||
                     (key === "30d"   && dateFrom === d30   && dateTo === today) ||
                     (key === "all"   && !dateFrom && !dateTo);
+                  const isActive = key === "custom" ? showCustomRange : active && !customRange;
                   return (
                     <button
                       key={key}
-                      onClick={fn}
-                      className={`px-2.5 h-7 rounded-md text-[11px] font-semibold transition-colors ${active ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-white hover:text-slate-900"}`}
+                      onClick={() => { setCustomRange(key === "custom"); fn(); }}
+                      className={`px-2.5 h-7 rounded-md text-[11px] font-semibold transition-colors ${isActive ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-white hover:text-slate-900"}`}
                     >
                       {label}
                     </button>
@@ -862,6 +865,7 @@ export default function BookingsListPremium() {
                   Hiq periudhën
                 </button>
               )}
+              {showCustomRange && <>
               <DatePicker
                 value={dateFrom}
                 placeholder="Rezervuar nga…"
@@ -875,6 +879,7 @@ export default function BookingsListPremium() {
                 onChange={v => setDateTo(v)}
                 className="w-40"
               />
+              </>}
             </div>
           )}
         </div>
@@ -1008,7 +1013,7 @@ export default function BookingsListPremium() {
           <div className="overflow-x-auto">
             <table ref={resizeTable.ref}
               style={resizeTable.sizes ? { tableLayout: "fixed", width: Object.values(resizeTable.sizes).reduce((sum, width) => sum + width, 40) } : undefined}
-              className="w-max text-sm whitespace-nowrap [&_td]:overflow-hidden">
+              className="min-w-full w-max text-sm whitespace-nowrap [&_td]:overflow-hidden">
               {resizeTable.sizes && <colgroup>
                 {columnState.columns.map(column => <col key={column.k} style={{ width: resizeTable.sizes![column.k] }} />)}
                 <col style={{ width: 40 }} />
