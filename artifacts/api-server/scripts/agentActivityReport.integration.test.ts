@@ -63,6 +63,10 @@ async function activity(agent: number, at: string, description: string, type = "
     (agent_id,type,description,created_at,method,path,status_code)
     VALUES ($1,$2,$3,$4,'GET','/public/flights',200)`, [agent, type, description, at]);
 }
+// Daily claim markers only; the recovery cursor (agent_activity_daily_next_day) is a separate row.
+async function claimRows() {
+  return (await client.query("SELECT * FROM settings WHERE key LIKE 'agent\\_activity\\_daily:%'")).rows.length;
+}
 async function state(day: string) {
   return (await client.query<{ value: string }>("SELECT value FROM settings WHERE key=$1",
     [`agent_activity_daily:${day}`])).rows[0]?.value;
@@ -126,7 +130,7 @@ test("two independent workers racing for a fresh SQL claim send once", async () 
   await Promise.all([sendDailyAgentActivityReport(), independentWorker()]);
   assert.equal(messages.length, 1);
   assert.equal(await state("2026-10-28"), "sent");
-  assert.equal((await client.query("SELECT * FROM settings")).rows.length, 1);
+  assert.equal(await claimRows(), 1);
   assert.equal(failures.length, 0);
 });
 
@@ -138,7 +142,7 @@ for (const rejection of [false, true]) test(`SMTP ${rejection ? "recipient rejec
   assert.equal(messages.length, 1);
   assert.equal(await state("2026-10-28"), "failed_or_uncertain");
   assert.equal(failures.length, 1);
-  assert.equal(failures[0][0], "agent-activity-report");
+  assert.equal(failures[0][0], "agent-activity-report:2026-10-28");
   assert.equal(recoveryCopies.length, 1);
   await independentWorker();
   assert.equal(messages.length, 1, "uncertain outcome is not automatically resent");
@@ -148,7 +152,7 @@ test("no activity means no email and no claim", async () => {
   await seed();
   await sendDailyAgentActivityReport();
   assert.equal(messages.length, 0);
-  assert.equal((await client.query("SELECT * FROM settings")).rows.length, 0);
+  assert.equal(await claimRows(), 0);
 });
 
 for (const [day, now, from, to] of [
