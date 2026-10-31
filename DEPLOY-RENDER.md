@@ -39,7 +39,7 @@ Kjo është e njëjta strukturë si `deploy/nginx.conf` në VPS, kështu që coo
 - **PDF / Chromium:** shërbimi ndërtohet me `Dockerfile` (Node 22 + Chromium), kështu që PDF-të
   dhe biletat Wizz punojnë. Chromium kërkon memorie; nëse sheh restart-e "out of memory" në plan
   `starter` (512 MB), kalo në `standard`.
-- **Skema e databazës** krijohet nga `preDeployCommand` para çdo deploy (vetëm nëse databaza është bosh).
+- **Skema e databazës** krijohet nga `docker-entrypoint.sh` në nisje të kontejnerit (vetëm nëse databaza është bosh).
 - **CORS:** nëse portali ose paneli hapen nga një domain tjetër (p.sh. `albaniasky.com`), shtoje te
   variabla `CORS_ORIGINS` (të ndara me presje). Nga e njëjta adresë nuk duhet asgjë.
 - **Planet falas** i "fikin" shërbimet pas mosaktivitetit dhe ndalojnë cron job-et. Përdor të paktën `starter`.
