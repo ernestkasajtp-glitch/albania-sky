@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck (libs, apps, scripts)
+        run: pnpm run typecheck
+      - name: Build API
+        run: pnpm --filter @workspace/api-server run build
+      - name: Build FMS panel
+        run: pnpm --filter @workspace/flight-system run build
+        env:
+          NODE_ENV: production
+      - name: Build booking portal
+        run: pnpm --filter @workspace/booking-engine run build
+        env:
+          NODE_ENV: production
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production image (with Chromium)
+        run: docker build -t albania-sky:ci .
+      - name: Chromium is available in the image
+        run: docker run --rm albania-sky:ci /usr/bin/chromium --version

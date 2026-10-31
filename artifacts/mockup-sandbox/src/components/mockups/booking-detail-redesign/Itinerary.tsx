@@ -1,6 +1,5 @@
 import './_group.css';
 import { mockBooking as booking, fmtM } from "./_mockData";
-import { ItineraryExcelPanel } from './ItineraryExcelPanel';
 import { 
   Plane, 
   Clock, 
@@ -132,7 +131,7 @@ export function Itinerary() {
         
         {/* Left Column: Journey & Passengers */}
         <div className="min-w-0 flex-1 flex flex-col gap-6">
-          <ItineraryExcelPanel />
+          {/* ItineraryExcelPanel was not included in the Replit export */}
           
           {/* Passengers */}
           <div>

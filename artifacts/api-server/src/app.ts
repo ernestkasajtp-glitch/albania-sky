@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import compression from "compression";
-import cors from "cors";
+import cors, { type CorsOptions } from "cors";
+import helmet from "helmet";
 import session from "express-session";
 import pinoHttp from "pino-http";
 import path from "path";
@@ -16,7 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app: Express = express();
 
-// Trust reverse proxy (Replit, Nginx, etc.) so cookies work on HTTPS
+// Trust the first reverse proxy (nginx / Render) so secure cookies work on HTTPS
 app.set("trust proxy", 1);
 
 app.use(
@@ -50,7 +51,37 @@ app.use(compression({
   },
 }));
 
-app.use(cors({ origin: true, credentials: true }));
+// Security headers. CSP is left off for now: the panel loads Google Fonts,
+// payment pages and uploaded images from several origins; enable it in
+// report-only mode first before enforcing.
+app.use(helmet({
+  contentSecurityPolicy: false,
+  // Branding images and uploads are embedded in emails and partner sites.
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false,
+  // The FMS panel embeds its own pages (print previews) in iframes.
+  frameguard: { action: "sameorigin" },
+}));
+
+// CORS: cookies are only accepted from our own origin plus CORS_ORIGINS
+// (comma-separated, e.g. "https://albaniasky.com,https://fms.albaniasky.com").
+// Partner endpoints authenticated by API key (/v1, /chatbot/v1) stay open to
+// any origin but never receive credentials.
+const allowedOrigins = new Set(
+  (process.env.CORS_ORIGINS ?? "").split(",").map(o => o.trim().replace(/\/$/, "")).filter(Boolean),
+);
+const partnerPath = /^\/api\/(v1|chatbot\/v1)(\/|$)/;
+app.use(cors((req, callback) => {
+  const origin = req.headers.origin;
+  if (partnerPath.test(req.url ?? "")) {
+    callback(null, { origin: true, credentials: false } satisfies CorsOptions);
+    return;
+  }
+  let sameHost = false;
+  try { sameHost = !!origin && new URL(origin).host === req.headers.host; } catch { /* invalid origin */ }
+  const allowed = !origin || sameHost || allowedOrigins.has(origin);
+  callback(null, { origin: allowed ? (origin ?? false) : false, credentials: allowed } satisfies CorsOptions);
+}));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -179,7 +210,12 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
   req.log?.error({ err }, "Unhandled route error");
   if (res.headersSent) return;
   const status = typeof err?.status === "number" ? err.status : 500;
-  res.status(status).json({ error: err?.message || "Gabim i brendshëm i serverit" });
+  // Never send internal details (SQL, stack, file paths) to the browser in
+  // production; client errors (4xx) keep their intended message.
+  const hideDetails = status >= 500 && process.env.NODE_ENV === "production";
+  res.status(status).json({
+    error: hideDetails ? "Gabim i brendshëm i serverit" : (err?.message || "Gabim i brendshëm i serverit"),
+  });
 });
 
 export default app;
