@@ -10,6 +10,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  version-bump:
+    # Every app change must raise APP_VERSION so the "new version" banner appears.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: APP_VERSION raised
+        run: node .github/scripts/check-version-bump.mjs origin/${{ github.base_ref }}
+
   typecheck-and-build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
