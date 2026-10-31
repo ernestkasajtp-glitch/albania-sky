@@ -1155,20 +1155,20 @@ export default function BookingsListPremium() {
                         {b.flight?.departureTime ? fmtAmPm(b.flight.departureTime) : "—"}
                       </td>
                       <td hidden={!isColumnVisible("pax")} style={stripeFor("pax")} className="w-px px-2 py-1 text-left align-middle">
-                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-lg">
-                          <span className="inline-block w-[3ch] shrink-0 text-right text-sm font-semibold text-slate-700 tabular-nums">{paxCount}</span>
-                          {infCount > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-fuchsia-600 ml-0.5" title={`${infCount} infant`}>
-                              <Baby className="w-3 h-3" />{infCount}
+                        <div className="inline-flex items-center gap-1.5">
+                          <span className="text-sm font-semibold text-slate-800 tabular-nums">{paxCount}</span>
+                          {bagCount > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-slate-500" title={`${bagCount} bagazh 20kg`}>
+                              <span className="text-[15px] leading-none" aria-hidden="true">🧳</span>{bagCount > 1 && bagCount}
                             </span>
                           )}
-                          {bagCount > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 ml-0.5" title={`${bagCount} bagazh të regjistruar`}>
-                              <Luggage className="w-3 h-3" />{bagCount}
+                          {infCount > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-slate-500" title={`${infCount} foshnjë (infant)`}>
+                              <span className="text-[15px] leading-none" aria-hidden="true">👶</span>{infCount > 1 && infCount}
                             </span>
                           )}
                           {(b.passengers || []).some((p: any) => p.hasPriorityBoarding) && (
-                            <Backpack className="w-3 h-3 text-yellow-600 ml-0.5" />
+                            <span className="text-[15px] leading-none" title="Priority boarding (10kg)">🎒</span>
                           )}
                         </div>
                       </td>

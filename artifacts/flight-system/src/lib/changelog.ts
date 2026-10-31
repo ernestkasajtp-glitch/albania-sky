@@ -9,6 +9,7 @@ export interface ChangelogEntry {
 
 // Më i riu lart.
 export const CHANGELOG: ChangelogEntry[] = [
+  { version: "1.551", date: "2026-10-31", notes: ["Rezervimet: kolona PAX tregon numrin e pasagjerëve me ikonat 🧳 bagazh, 👶 foshnjë dhe 🎒 priority, pa kutinë gri; numri pranë ikonës del vetëm kur janë më shumë se një."] },
   { version: "1.550", date: "2026-10-31", notes: ["Menaxherët hapin përsëri Pagesat, Agjentët, Lejet dhe Biletat e grupit (më parë dilte \"Forbidden\"). Faqja e Pagesave ngarkohet shumë më shpejt, databaza ka indekse të reja, Dashboard-i tregon deri në 100 rezervimet e fundit për status dhe \"Sot\" numërohet sipas orës së Shqipërisë."] },
   { version: "1.549", date: "2026-10-31", notes: ["Mbeten vetëm dy tema: Blu & Ar dhe Gri Klasik. Kush kishte zgjedhur një temë tjetër kalon automatikisht te Gri Klasik."] },
   {

@@ -6,4 +6,4 @@
 //     datën dhe shënimet e ndryshimeve që bëre.
 // Versioni shfaqet poshtë menusë anësore dhe historiku te Cilësimet.
 
-export const APP_VERSION = "1.550";
+export const APP_VERSION = "1.551";
