@@ -153,6 +153,23 @@ app.use("/api/uploads", uploadsGuarded);
 
 app.use("/api", router);
 
+// Optional single-service hosting (e.g. Render): when SERVE_FRONTENDS=1 the API
+// also serves the built panel at /flight-system/ and the booking portal at /,
+// so everything shares one origin like the nginx setup in deploy/nginx.conf.
+if (process.env.SERVE_FRONTENDS === "1") {
+  const artifactsDir = path.resolve(__dirname, "..", "..");
+  const fmsDir = path.join(artifactsDir, "flight-system", "dist", "public");
+  const bookingDir = path.join(artifactsDir, "booking-engine", "dist", "public");
+  app.use("/flight-system", express.static(fmsDir, { index: false }));
+  app.get(/^\/flight-system(\/.*)?$/, (_req, res) => {
+    res.sendFile(path.join(fmsDir, "index.html"));
+  });
+  app.use(express.static(bookingDir, { index: false }));
+  app.get(/^\/(?!api\/|uploads\/).*/, (_req, res) => {
+    res.sendFile(path.join(bookingDir, "index.html"));
+  });
+}
+
 // Global error handler — MUST be last. Without it, an unhandled throw in any
 // route (Express 5 forwards async rejections here) falls through to Express's
 // default handler, which returns an HTML error page. Frontend `r.json()` then
