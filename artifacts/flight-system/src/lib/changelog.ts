@@ -9,6 +9,7 @@ export interface ChangelogEntry {
 
 // Më i riu lart.
 export const CHANGELOG: ChangelogEntry[] = [
+  { version: "1.549", date: "2026-10-31", notes: ["Mbeten vetëm dy tema: Blu & Ar dhe Gri Klasik. Kush kishte zgjedhur një temë tjetër kalon automatikisht te Gri Klasik."] },
   {
     version: "1.548",
     date: "2026-10-30",
