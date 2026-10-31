@@ -1,0 +1,53 @@
+# Render Blueprint — Albania Sky / FMS
+# Render → New → Blueprint → zgjidh repo-n albania-sky.
+# Një shërbim i vetëm: API + paneli (/flight-system/) + portali publik (/).
+services:
+  - type: web
+    name: albania-sky
+    runtime: node
+    region: frankfurt
+    plan: starter
+    buildCommand: >-
+      npm install -g pnpm@10.28.0 &&
+      pnpm install --frozen-lockfile &&
+      pnpm --filter @workspace/api-server run build &&
+      NODE_ENV=production pnpm --filter @workspace/flight-system run build &&
+      NODE_ENV=production pnpm --filter @workspace/booking-engine run build
+    startCommand: cd artifacts/api-server && node --enable-source-maps ./dist/index.mjs
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_FRONTENDS
+        value: "1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: albania-sky-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      # Vendosen me dorë në Render (sync: false = nuk ruhen në GitHub)
+      - key: RAPIDAPI_KEY
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: GMAIL_FROM
+        sync: false
+      - key: FMS_PUBLIC_BASE_URL
+        sync: false
+
+databases:
+  - name: albania-sky-db
+    region: frankfurt
+    plan: basic-256mb
+    postgresMajorVersion: "16"
