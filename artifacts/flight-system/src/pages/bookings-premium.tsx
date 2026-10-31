@@ -51,6 +51,14 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; lab
   cancelled:  { bg: "bg-rose-50",     text: "text-rose-700",    dot: "bg-rose-500",    label: "Anuluar" },
 };
 
+const STATUS_STRIPE: Record<string, string> = {
+  draft: "#94a3b8",
+  pending: "#f59e0b",
+  confirmed: "#3b82f6",
+  ticketed: "#00b050",
+  cancelled: "#cbd5e1",
+};
+
 function fmt(n: number | string | null | undefined) {
   const v = Number(n ?? 0);
   return fmtM(v);
@@ -60,28 +68,19 @@ function StatCard({ label, value, delta, deltaDir, icon: Icon, accent, kind }: {
   label: string; value: string; delta?: string; deltaDir?: "up" | "down" | "flat"; icon: any; accent: string;
   kind?: "bookings" | "sales" | "profit" | "unpaid" | "pax";
 }) {
-  const { themeId } = useTheme();
-  const gold = themeId === "navyGold";
-  const Glyph = gold && kind ? ({ bookings: ClipboardList, sales: Banknote, profit: Percent, unpaid: FileClock, pax: Users }[kind]) : Icon;
   const deltaCls = deltaDir === "up" ? "text-emerald-600 bg-emerald-50"
     : deltaDir === "down" ? "text-rose-600 bg-rose-50"
     : "text-slate-500 bg-slate-100";
   const DeltaIcon = deltaDir === "up" ? ArrowUpRight : deltaDir === "down" ? ArrowDownRight : TrendingUp;
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-4 hover:shadow-md hover:border-slate-300 transition-all group relative overflow-hidden">
-      <div className={`absolute -top-12 -right-12 w-32 h-32 rounded-full ${accent} opacity-[0.08] group-hover:opacity-[0.14] transition-opacity`} />
-      <div className="flex items-start justify-between mb-3">
-        <div data-kind={kind} className={`w-9 h-9 rounded-xl ${gold ? "navy-stat-icon" : accent} flex items-center justify-center shadow-sm`}>
-          <Glyph className="w-4 h-4 text-white" />
-        </div>
-        {delta && (
-          <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 ${deltaCls}`}>
-            <DeltaIcon className="w-3 h-3" /> {delta}
-          </span>
-        )}
-      </div>
-      <div className="text-[11px] font-medium uppercase tracking-wider text-slate-500 mb-1">{label}</div>
-      <div className="text-2xl font-bold text-slate-900 tabular-nums tracking-tight">{value}</div>
+    <div className="flex items-baseline gap-3 px-4 py-2.5 min-w-0">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{label}</span>
+      {delta && (
+        <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 ${deltaCls}`}>
+          <DeltaIcon className="w-3 h-3" /> {delta}
+        </span>
+      )}
+      <span className={`ml-auto text-xl font-bold tabular-nums tracking-tight ${kind === "unpaid" ? "text-rose-600" : "text-slate-900"}`}>{value}</span>
     </div>
   );
 }
@@ -98,7 +97,17 @@ export default function BookingsListPremium() {
   const [flightSearch, setFlightSearch] = useState("");
   const todayISO = format(new Date(), "yyyy-MM-dd");
   const [dateFrom, setDateFrom] = useState(todayISO);
+  const [customRange, setCustomRange] = useState(false);
   const [dateTo, setDateTo] = useState(todayISO);
+  const showCustomRange = (() => {
+    if (customRange) return true;
+    if (!dateFrom && !dateTo) return false;
+    const day = (n: number) => format(new Date(Date.now() - n * 864e5), "yyyy-MM-dd");
+    const today = day(0);
+    if (dateFrom === dateTo && (dateFrom === today || dateFrom === day(1))) return false;
+    if (dateTo === today && (dateFrom === day(6) || dateFrom === day(29))) return false;
+    return true;
+  })();
   // Filtri i datës së FLUTURIMIT (nisja) — vlen edhe gjatë kërkimit tekstual
   const [flightDateFrom, setFlightDateFrom] = useState("");
   const [flightDateTo, setFlightDateTo] = useState("");
@@ -502,7 +511,7 @@ export default function BookingsListPremium() {
         {/* Stats */}
         {visibleStatCount > 0 && (
           <div className="space-y-2">
-            <div className={`grid grid-cols-2 ${visibleStatCount >= 5 ? "lg:grid-cols-5" : visibleStatCount === 4 ? "lg:grid-cols-4" : visibleStatCount === 3 ? "lg:grid-cols-3" : visibleStatCount === 2 ? "lg:grid-cols-2" : "lg:grid-cols-1"} gap-3`}>
+            <div className={`grid grid-cols-2 ${visibleStatCount >= 5 ? "lg:grid-cols-5" : visibleStatCount === 4 ? "lg:grid-cols-4" : visibleStatCount === 3 ? "lg:grid-cols-3" : visibleStatCount === 2 ? "lg:grid-cols-2" : "lg:grid-cols-1"} bg-white rounded-xl border border-slate-200 divide-x divide-slate-200 overflow-hidden`}>
               {canStatBookings && (
                 <StatCard kind="bookings" label={`Rezervime ${periodLabel}`} value={String(stats.periodCount)} icon={Users} accent="bg-gradient-to-br from-blue-500 to-indigo-600" />
               )}
@@ -529,7 +538,7 @@ export default function BookingsListPremium() {
         )}
 
         {/* Filters bar */}
-      <div className="page-filter-panel bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm space-y-2">
+      <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             {canSearchBookings && (
             <div className="relative flex-1 min-w-[220px] max-w-md">
@@ -794,6 +803,7 @@ export default function BookingsListPremium() {
                   ["7d",     "7 ditët",    () => { setDateFrom(format(new Date(Date.now() - 6*864e5), "yyyy-MM-dd")); setDateTo(format(new Date(), "yyyy-MM-dd")); }],
                   ["30d",    "30 ditët",   () => { setDateFrom(format(new Date(Date.now() - 29*864e5), "yyyy-MM-dd")); setDateTo(format(new Date(), "yyyy-MM-dd")); }],
                   ["all",    "Të gjitha",  () => { setDateFrom(""); setDateTo(""); }],
+                  ["custom", "Periudhë…",  () => {}],
                 ] as const).map(([key, label, fn]) => {
                   const today = format(new Date(), "yyyy-MM-dd");
                   const yest = format(new Date(Date.now() - 864e5), "yyyy-MM-dd");
@@ -805,11 +815,12 @@ export default function BookingsListPremium() {
                     (key === "7d"    && dateFrom === d7    && dateTo === today) ||
                     (key === "30d"   && dateFrom === d30   && dateTo === today) ||
                     (key === "all"   && !dateFrom && !dateTo);
+                  const isActive = key === "custom" ? showCustomRange : active && !customRange;
                   return (
                     <button
                       key={key}
-                      onClick={fn}
-                      className={`px-2.5 h-7 rounded-md text-[11px] font-semibold transition-colors ${active ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-white hover:text-slate-900"}`}
+                      onClick={() => { setCustomRange(key === "custom"); fn(); }}
+                      className={`px-2.5 h-7 rounded-md text-[11px] font-semibold transition-colors ${isActive ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-white hover:text-slate-900"}`}
                     >
                       {label}
                     </button>
@@ -854,6 +865,7 @@ export default function BookingsListPremium() {
                   Hiq periudhën
                 </button>
               )}
+              {showCustomRange && <>
               <DatePicker
                 value={dateFrom}
                 placeholder="Rezervuar nga…"
@@ -867,6 +879,7 @@ export default function BookingsListPremium() {
                 onChange={v => setDateTo(v)}
                 className="w-40"
               />
+              </>}
             </div>
           )}
         </div>
@@ -1000,7 +1013,7 @@ export default function BookingsListPremium() {
           <div className="overflow-x-auto">
             <table ref={resizeTable.ref}
               style={resizeTable.sizes ? { tableLayout: "fixed", width: Object.values(resizeTable.sizes).reduce((sum, width) => sum + width, 40) } : undefined}
-              className="w-max text-sm whitespace-nowrap [&_td]:overflow-hidden">
+              className="min-w-full w-max text-sm whitespace-nowrap [&_td]:overflow-hidden">
               {resizeTable.sizes && <colgroup>
                 {columnState.columns.map(column => <col key={column.k} style={{ width: resizeTable.sizes![column.k] }} />)}
                 <col style={{ width: 40 }} />
@@ -1056,14 +1069,18 @@ export default function BookingsListPremium() {
                   const comm = Number(b.commissionAmount ?? 0);
                   const netoRaw = Number(b.netPrice ?? 0);
                   const hasNeto = netoRaw > 0;
+                  const fullyPaid = due <= 0 && paid > 0 && b.status !== "cancelled";
+                  const stripe = { boxShadow: `inset 4px 0 0 ${STATUS_STRIPE[b.status] || STATUS_STRIPE.draft}` };
+                  const firstCol = columnState.columns.find(c => isColumnVisible(c.k))?.k;
+                  const stripeFor = (k: string) => (k === firstCol ? stripe : undefined);
                   return (
                     <tr key={b.id} className={`border-b border-slate-300 hover:bg-slate-50/60 group transition-colors ${b.status === "cancelled" ? "!bg-slate-50 line-through text-black [&_*]:line-through [&_*]:!text-black [&_.cx-anuluar]:!text-red-600 [&_.cx-anuluar]:!no-underline" : isFlightSoon(b.flight?.departureDate) ? "!bg-red-100/60 hover:!bg-red-100/80" : ""}`}>
-                      <td hidden={!isColumnVisible("date")} className="w-px px-2 py-1 align-middle">
+                      <td hidden={!isColumnVisible("date")} style={stripeFor("date")} className="w-px px-2 py-1 align-middle">
                         <div className="flex flex-col leading-tight">
                           <span className={`text-[13px] font-semibold ${t ? "text-emerald-600" : "text-slate-900"}`}>{format(createdAt, "dd MMM yyyy")}</span>
                         </div>
                       </td>
-                      <td hidden={!isColumnVisible("ref")} className="w-px px-2 py-1 align-middle">
+                      <td hidden={!isColumnVisible("ref")} style={stripeFor("ref")} className="w-px px-2 py-1 align-middle">
                         <div className="flex flex-col gap-0.5 items-start">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <button
@@ -1089,7 +1106,7 @@ export default function BookingsListPremium() {
                           </div>
                         </div>
                       </td>
-                      <td hidden={!isColumnVisible("pnr")} className="w-px px-2 py-1 align-middle">
+                      <td hidden={!isColumnVisible("pnr")} style={stripeFor("pnr")} className="w-px px-2 py-1 align-middle">
                         <div className="flex flex-col gap-0.5 items-start">
                           {(() => {
                             const pnrs = bookingPnrList(b);
@@ -1110,10 +1127,10 @@ export default function BookingsListPremium() {
                           })()}
                         </div>
                       </td>
-                      <td hidden={!isColumnVisible("klienti")} className="px-2 py-1 align-middle">
+                      <td hidden={!isColumnVisible("klienti")} style={stripeFor("klienti")} className="px-2 py-1 align-middle">
                         <div className="font-medium text-slate-900 text-[14px]">{clientName || "—"}</div>
                       </td>
-                      <td hidden={!isColumnVisible("agjencia")} className="px-2 py-1 align-middle">
+                      <td hidden={!isColumnVisible("agjencia")} style={stripeFor("agjencia")} className="px-2 py-1 align-middle">
                         {b.agentId && b.agentName ? (
                           <div className="flex items-center gap-2">
                             <span style={agencyColors.get(b.agentId)} className="text-[14px] font-medium text-slate-700 truncate max-w-[140px]">{b.agentName}</span>
@@ -1123,26 +1140,21 @@ export default function BookingsListPremium() {
                           <span className="text-xs text-slate-400">—</span>
                         )}
                       </td>
-                      <td hidden={!isColumnVisible("fluturimi")} className="px-2 py-1 align-middle">
+                      <td hidden={!isColumnVisible("fluturimi")} style={stripeFor("fluturimi")} className="px-2 py-1 align-middle">
                         <div className="flex items-center gap-1.5">
                           <span className="font-mono font-bold text-slate-900 text-[14px]">{b.flight?.fromCity || "—"}-{b.flight?.toCity || "—"}</span>
                           {b.flight?.isConfirmed && (
                             <span className="text-sm leading-none" title="Fluturim i Konfirmuar" aria-label="Fluturim i Konfirmuar">⭐</span>
                           )}
                         </div>
-                        {(b.passengers || []).some((p: any) => p.hasPriorityBoarding) && (
-                          <span className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold ring-1 ring-amber-200 leading-none" title="Ka priority boarding (10kg)">
-                            <Backpack className="w-3 h-3" /> PRIORITY
-                          </span>
-                        )}
                       </td>
-                      <td hidden={!isColumnVisible("flightDate")} className="w-px px-2 py-1 align-middle text-[11px] text-slate-500">
+                      <td hidden={!isColumnVisible("flightDate")} style={stripeFor("flightDate")} className="w-px px-2 py-1 align-middle text-[11px] text-slate-500">
                         {b.flight?.departureDate ? format(new Date(b.flight.departureDate + "T00:00:00"), "dd.MM.yyyy") : "—"}
                       </td>
-                      <td hidden={!isColumnVisible("flightTime")} className="w-px px-2 py-1 align-middle font-mono text-[11px] text-slate-500">
+                      <td hidden={!isColumnVisible("flightTime")} style={stripeFor("flightTime")} className="w-px px-2 py-1 align-middle font-mono text-[11px] text-slate-500">
                         {b.flight?.departureTime ? fmtAmPm(b.flight.departureTime) : "—"}
                       </td>
-                      <td hidden={!isColumnVisible("pax")} className="w-px px-2 py-1 text-left align-middle">
+                      <td hidden={!isColumnVisible("pax")} style={stripeFor("pax")} className="w-px px-2 py-1 text-left align-middle">
                         <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-lg">
                           <span className="inline-block w-[3ch] shrink-0 text-right text-sm font-semibold text-slate-700 tabular-nums">{paxCount}</span>
                           {infCount > 0 && (
@@ -1160,30 +1172,32 @@ export default function BookingsListPremium() {
                           )}
                         </div>
                       </td>
-                      <td hidden={!isColumnVisible("financa")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
-                        <span className={`font-bold text-[14px] ${due <= 0 && paid > 0 && b.status !== "cancelled" ? "inline-flex items-center rounded-md bg-[#00b050] px-1 py-0 text-white" : "text-slate-900"}`}>€{fmt(total)}</span>
+                      <td hidden={!isColumnVisible("financa")} style={stripeFor("financa")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
+                        <span className="font-bold text-[14px] text-slate-900">€{fmt(total)}</span>
                       </td>
-                      <td hidden={!isColumnVisible("neto")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
+                      <td hidden={!isColumnVisible("neto")} style={stripeFor("neto")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
                         {hasNeto ? <span className="font-semibold text-slate-700">€{fmt(netoRaw)}</span> : <span className="text-slate-400 italic">—</span>}
                       </td>
                       {canCommissionCol && (
-                        <td hidden={!isColumnVisible("commission")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
+                        <td hidden={!isColumnVisible("commission")} style={stripeFor("commission")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
                           {comm !== 0 ? (
                             <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold ring-1 ${comm > 0 ? "bg-emerald-100 text-emerald-700 ring-emerald-200" : "bg-rose-100 text-rose-700 ring-rose-200"}`} title="Komision">{comm > 0 ? "+" : "−"}€{fmt(Math.abs(comm))}</span>
                           ) : <span className="text-slate-400">€0</span>}
                         </td>
                       )}
-                      <td hidden={!isColumnVisible("paid")} className="w-px px-2 py-1 align-middle text-right tabular-nums font-semibold text-emerald-600">
-                        €{fmt(paid)}
+                      <td hidden={!isColumnVisible("paid")} style={stripeFor("paid")} className="w-px px-2 py-1 align-middle text-right tabular-nums font-semibold">
+                        {fullyPaid
+                          ? <span className="inline-flex items-center rounded-md bg-[#00b050] px-1.5 py-0 text-white font-bold">€{fmt(paid)}</span>
+                          : <span className="text-emerald-600">€{fmt(paid)}</span>}
                       </td>
-                      <td hidden={!isColumnVisible("due")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
-                        {due > 0 ? <span className="text-rose-600 font-bold">€{fmt(due)}</span> : <span className="text-emerald-600 font-bold">€0 ✓</span>}
+                      <td hidden={!isColumnVisible("due")} style={stripeFor("due")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
+                        {due > 0 ? <span className="text-rose-600 font-bold">€{fmt(due)}</span> : <span className="text-slate-400 font-semibold">€0</span>}
                       </td>
-                      <td hidden={!isColumnVisible("credit")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
+                      <td hidden={!isColumnVisible("credit")} style={stripeFor("credit")} className="w-px px-2 py-1 align-middle text-right tabular-nums">
                         {Number(b.creditAmount) > 0 ? <span className="text-blue-600 font-semibold">+€{fmt(b.creditAmount)}</span> : <span className="text-slate-400">—</span>}
                       </td>
-                      <td hidden={!isColumnVisible("statusi")} className="px-2 py-1 align-middle">
-                        <div className="flex flex-col items-start gap-1">
+                      <td hidden={!isColumnVisible("statusi")} style={stripeFor("statusi")} className="px-2 py-1 align-middle">
+                        <div className="flex items-center gap-1.5">
                           <div className="flex items-center gap-1.5">
                             <Link href={`/bookings/${b.id}`}>
                               <span className={`cx-anuluar inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold cursor-pointer ${s.bg} ${s.text}`}>
