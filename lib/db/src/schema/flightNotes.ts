@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 
 // Shënime brenda fluturimit (si bisedë) — të pandryshueshme pas dërgimit.
 // Vetëm për sistemin e brendshëm (FMS); s'dalin kurrë te faqja publike apo API i partnerëve.
@@ -10,6 +10,8 @@ export const flightNotesTable = pgTable("flight_notes", {
   authorRole: text("author_role"),
   message: text("message").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_flight_notes_flight_id").on(t.flightId),
+]);
 
 export type FlightNote = typeof flightNotesTable.$inferSelect;

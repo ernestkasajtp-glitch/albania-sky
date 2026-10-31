@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, numeric, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, numeric, timestamp, index } from "drizzle-orm/pg-core";
 import { flightsTable } from "./flights";
 
 // One row per change to a flight's own ("our") price. We snapshot the Google
@@ -14,6 +14,8 @@ export const flightPriceHistoryTable = pgTable("flight_price_history", {
   userName: text("user_name").notNull().default("System"),
   userRole: text("user_role"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_flight_price_history_flight_id").on(t.flightId),
+]);
 
 export type FlightPriceHistory = typeof flightPriceHistoryTable.$inferSelect;

@@ -136,6 +136,25 @@ function requirePermission(permKey: string) {
   };
 }
 
+// Mount `sub` behind `guards`, but run the guards ONLY for requests that `sub`
+// has an endpoint for (same path + method). A bare `router.use(guard, sub)`
+// runs the guard for EVERY request that reaches that line, so a role check in
+// front of one router silently blocked all routers mounted after it — e.g.
+// requireAdmin before the Atlas router answered 403 to managers on /payments,
+// /agents, /permissions/my, /group-tickets and more.
+function hasEndpoint(sub: any, req: Request): boolean {
+  return (sub.stack ?? []).some((layer: any) =>
+    layer.route && layer.match(req.path) && layer.route._handlesMethod(req.method));
+}
+function scoped(sub: IRouter, ...guards: Array<(req: Request, res: Response, next: NextFunction) => unknown>): IRouter {
+  const chain: IRouter = Router();
+  chain.use((req: Request, _res: Response, next: NextFunction) => {
+    if (hasEndpoint(sub, req)) next(); else next("router");
+  });
+  chain.use(...(guards as any[]), sub);
+  return chain;
+}
+
 // Çdo mutacion i suksesshëm (jo-GET) në rezervime/pagesa/pasagjerë → njoftim
 // live. Regjistrohet PËRPARA routerave që të kapë edhe rrugët publike
 // (booking i ri nga booking-engine) — API i partnerit /v1/* është read-only.
@@ -221,8 +240,8 @@ router.use(requireFmsAuth, passengersRouter);
 router.use(requireFmsAuth, priceRequestsRouter);
 router.use(requireFmsAuth, tasksRouter);
 router.use(requireFmsAuth, claimsRouter);
-router.use(requireAdmin, atlasSeatAlertsRouter);
-router.use(requireManagerOrAdmin, teamChatRouter);
+router.use(scoped(atlasSeatAlertsRouter, requireAdmin));
+router.use(scoped(teamChatRouter, requireManagerOrAdmin));
 // Permissions router handles its own role checks internally
 router.use(requireFmsAuth, permissionsRouter);
 
@@ -230,42 +249,42 @@ router.use(requireFmsAuth, permissionsRouter);
 router.use(requireFmsAuth, excelDownloadRouter);
 
 // ── Admin + Manager only ──────────────────────────────────────────────────────
-router.use(requireManagerOrAdmin, paymentsRouter);
-router.use(requireManagerOrAdmin, paymentMethodsRouter);
-router.use(requireManagerOrAdmin, agentsRouter);
-router.use(requireManagerOrAdmin, priceRulesRouter);
-router.use(requirePermission("can_access_reports"), reportsRouter);
-router.use(requirePermission("can_access_reports"), assistantRouter);
-router.use(requireManagerOrAdmin, groupTicketsRouter);
-router.use(requireManagerOrAdmin, airportAlternativesRouter);
-router.use(requireManagerOrPermission("can_access_destinations"), adminDestRouter);
-router.use(requireManagerOrAdmin, cpExportRouter);
+router.use(scoped(paymentsRouter, requireManagerOrAdmin));
+router.use(scoped(paymentMethodsRouter, requireManagerOrAdmin));
+router.use(scoped(agentsRouter, requireManagerOrAdmin));
+router.use(scoped(priceRulesRouter, requireManagerOrAdmin));
+router.use(scoped(reportsRouter, requirePermission("can_access_reports")));
+router.use(scoped(assistantRouter, requirePermission("can_access_reports")));
+router.use(scoped(groupTicketsRouter, requireManagerOrAdmin));
+router.use(scoped(airportAlternativesRouter, requireManagerOrAdmin));
+router.use(scoped(adminDestRouter, requireManagerOrPermission("can_access_destinations")));
+router.use(scoped(cpExportRouter, requireManagerOrAdmin));
 
 // ── Admin only ────────────────────────────────────────────────────────────────
-router.use(requireFmsAuth, requireAdmin, fmsIpAccessRouter); // /settings/ip-access/*
+router.use(scoped(fmsIpAccessRouter, requireFmsAuth, requireAdmin)); // /settings/ip-access/*
   router.use(kyteSearchRouter);  // /kyte/search (sandbox; guarded inside router)
-  router.use(requireFmsAuth, requireAdmin, kyteSandboxBookingsRouter); // Kyte Sandbox bookings; guarded again inside router
+  router.use(scoped(kyteSandboxBookingsRouter, requireFmsAuth, requireAdmin)); // Kyte Sandbox bookings; guarded again inside router
 router.use(requireFmsAuth, cancelPasswordRouter);       // GET/POST /cancel-password/* + admin /settings/cancel-password
-router.use(requireAdmin, adminEmailRouter);             // /admin-email/* — inbox i brendshëm (vetëm admin)
-router.use(requireAdmin, webhookSettingsRouter);        // GET/POST /settings/webhook
-router.use(requireAdmin, seatCheckSettingsRouter);      // GET/PUT /settings/seat-check + POST run
-router.use(requirePermission("can_use_google_price_tools"), noPriceCheckSettingsRouter);   // GET/PUT /settings/no-price-check + POST run (admin or granted)
-router.use(requirePermission("can_use_google_price_tools"), stalePriceCheckSettingsRouter); // GET/PUT /settings/stale-price-check + POST run
-router.use(requirePermission("can_use_google_price_tools"), newPriceCheckSettingsRouter);  // GET/PUT /settings/new-price-check + POST run (admin or granted)
-router.use(requireAdmin, priceReportEmailSettingsRouter); // GET/PUT /settings/price-report-email (admin only)
-router.use(requireAdmin, agentRoundingSettingsRouter);  // GET/PUT /settings/agent-rounding
-router.use(requireAdmin, guestMarkupSettingsRouter);    // GET/PUT /settings/guest-markup
-router.use(requireAdmin, guestFlightAccessRouter);
-router.use(requireAdmin, externalApiSettingsRouter);    // GET/POST/DELETE /settings/external-api
-router.use(requireAdmin, bookingEngineSettingsRouter);  // GET/PATCH /booking-engine/...
-router.use(requireAdmin, publicEnrollmentsRouter);
-router.use(requireAdmin, googlePriceRulesRouter);       // CRUD /google-price-rules (changes REAL sale prices)
-router.use(requireAdmin, socialProofSettingsRouter);   // GET/PUT /settings/social-proof (booking-engine badge toggle)
-router.use(requireAdmin, pokAccountsSettingsRouter);   // CRUD/activate/disable /settings/pok-accounts
-router.use(requireAdmin, pokReconciliationRouter);     // reconciliation for unknown POK intents
-router.use(requireAdmin, cpImportAlertsRouter);        // GET/POST /cp-import-alerts (CitizenPlane import-failure notifications)
+router.use(scoped(adminEmailRouter, requireAdmin));             // /admin-email/* — inbox i brendshëm (vetëm admin)
+router.use(scoped(webhookSettingsRouter, requireAdmin));        // GET/POST /settings/webhook
+router.use(scoped(seatCheckSettingsRouter, requireAdmin));      // GET/PUT /settings/seat-check + POST run
+router.use(scoped(noPriceCheckSettingsRouter, requirePermission("can_use_google_price_tools")));   // GET/PUT /settings/no-price-check + POST run (admin or granted)
+router.use(scoped(stalePriceCheckSettingsRouter, requirePermission("can_use_google_price_tools"))); // GET/PUT /settings/stale-price-check + POST run
+router.use(scoped(newPriceCheckSettingsRouter, requirePermission("can_use_google_price_tools")));  // GET/PUT /settings/new-price-check + POST run (admin or granted)
+router.use(scoped(priceReportEmailSettingsRouter, requireAdmin)); // GET/PUT /settings/price-report-email (admin only)
+router.use(scoped(agentRoundingSettingsRouter, requireAdmin));  // GET/PUT /settings/agent-rounding
+router.use(scoped(guestMarkupSettingsRouter, requireAdmin));    // GET/PUT /settings/guest-markup
+router.use(scoped(guestFlightAccessRouter, requireAdmin));
+router.use(scoped(externalApiSettingsRouter, requireAdmin));    // GET/POST/DELETE /settings/external-api
+router.use(scoped(bookingEngineSettingsRouter, requireAdmin));  // GET/PATCH /booking-engine/...
+router.use(scoped(publicEnrollmentsRouter, requireAdmin));
+router.use(scoped(googlePriceRulesRouter, requireAdmin));       // CRUD /google-price-rules (changes REAL sale prices)
+router.use(scoped(socialProofSettingsRouter, requireAdmin));   // GET/PUT /settings/social-proof (booking-engine badge toggle)
+router.use(scoped(pokAccountsSettingsRouter, requireAdmin));   // CRUD/activate/disable /settings/pok-accounts
+router.use(scoped(pokReconciliationRouter, requireAdmin));     // reconciliation for unknown POK intents
+router.use(scoped(cpImportAlertsRouter, requireAdmin));        // GET/POST /cp-import-alerts (CitizenPlane import-failure notifications)
 router.use("/wizz-price-monitors", requireAdmin, wizzPriceMonitorRouter); // Wizz Air route price monitor
-router.use(requireManagerOrAdmin, scheduleChangesRouter); // GET/POST /schedule-changes (flights with schedule changes — notify recipients)
+router.use(scoped(scheduleChangesRouter, requireManagerOrAdmin)); // GET/POST /schedule-changes (flights with schedule changes — notify recipients)
 router.use("/flight-discovery", flightDiscoveryRouter); // standalone admin-only Google direct-flight discovery
 
 export default router;

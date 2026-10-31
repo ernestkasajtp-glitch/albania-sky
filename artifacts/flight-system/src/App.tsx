@@ -56,7 +56,20 @@ import { TeamChatWidget } from "@/components/TeamChatWidget";
 import { useChatEnabled } from "@/lib/chat-enabled";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-const queryClient = new QueryClient();
+// Don't retry client errors (401/403/404/400…): the answer won't change, and the
+// default 3 retries delayed the error message by several seconds. Network and
+// 5xx errors still get up to 2 retries.
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        const status = (error as { status?: unknown } | null)?.status;
+        if (typeof status === "number" && status >= 400 && status < 500) return false;
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
 // ─── Role-based route guard ───────────────────────────────────────────────────
 function GuardedRoute({

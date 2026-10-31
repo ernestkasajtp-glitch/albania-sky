@@ -293,6 +293,8 @@ function UpcomingPaxChart({ apiBase, dateFrom, dateTo }: { apiBase: string; date
   );
 }
 
+const DASHBOARD_STATUS_LIMIT = 100;
+
 export default function Dashboard() {
   const { hasPermission, user } = useAdminAuth();
   const isAdmin = user?.role === "admin";
@@ -309,9 +311,11 @@ export default function Dashboard() {
     { dateFrom: effPaxFrom, dateTo: effPaxTo },
   );
   const paxIsToday = effPaxFrom === todayStr && effPaxTo === todayStr;
-  const { data: draftBookings = [], isLoading: isLoadingDraft } = useListBookings({ status: "draft" });
-  const { data: pendingBookings = [], isLoading: isLoadingPending } = useListBookings({ status: "pending" });
-  const { data: confirmedBookings = [], isLoading: isLoadingConfirmed } = useListBookings({ status: "confirmed" });
+  // Cards show only the most recent bookings per status; "Shiko më shumë" opens the
+  // full list. Without a limit, "confirmed" grows forever and the dashboard slows down.
+  const { data: draftBookings = [], isLoading: isLoadingDraft } = useListBookings({ status: "draft", limit: DASHBOARD_STATUS_LIMIT } as any);
+  const { data: pendingBookings = [], isLoading: isLoadingPending } = useListBookings({ status: "pending", limit: DASHBOARD_STATUS_LIMIT } as any);
+  const { data: confirmedBookings = [], isLoading: isLoadingConfirmed } = useListBookings({ status: "confirmed", limit: DASHBOARD_STATUS_LIMIT } as any);
   const [analytics, setAnalytics] = useState<any>(null);
   const [loadingAnalytics, setLoadingAnalytics] = useState(true);
   const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
@@ -891,7 +895,7 @@ function StatusBookingsCard({
             <Ticket className="h-4 w-4" /> {title}
           </CardTitle>
           <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${iconClass}`}>
-            {data.length}
+            {data.length >= DASHBOARD_STATUS_LIMIT ? `${DASHBOARD_STATUS_LIMIT}+` : data.length}
           </span>
         </div>
       </CardHeader>

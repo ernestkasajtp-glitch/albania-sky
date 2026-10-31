@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { flightsTable } from "./flights";
 
 // Historiku i vendeve: një rresht për çdo ngjarje që prek vendet e një fluturimi
@@ -20,6 +20,8 @@ export const flightSeatHistoryTable = pgTable("flight_seat_history", {
   userRole: text("user_role"),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_flight_seat_history_flight_id").on(t.flightId),
+]);
 
 export type FlightSeatHistory = typeof flightSeatHistoryTable.$inferSelect;

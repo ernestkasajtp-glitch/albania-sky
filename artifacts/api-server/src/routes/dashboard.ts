@@ -102,12 +102,13 @@ async function getBatchFullBookingsDash(ids: number[]) {
 }
 
 router.get("/dashboard/summary", async (_req, res): Promise<void> => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // "Sot" = since midnight in Albania (Europe/Tirane), not the server's UTC
+  // midnight (which is 01:00/02:00 local and dropped the night's first bookings).
+  const today = sql`(date_trunc('day', now() AT TIME ZONE 'Europe/Tirane') AT TIME ZONE 'Europe/Tirane')`;
 
   const [todayBookings, paidMap, statusRows, [seatRow], minimalNonCancelled] = await Promise.all([
     db.select().from(bookingsTable).where(and(
-      gte(bookingsTable.createdAt, today),
+      sql`${bookingsTable.createdAt} >= ${today}`,
       sql`${bookingsTable.status} != 'cancelled'`,
     )),
     buildPaidMapSQL(),

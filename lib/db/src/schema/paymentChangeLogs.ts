@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { paymentsTable } from "./payments";
 
 // Historik i plotë për ÇDO pagesë: krijim, ndryshim, anulim, konfirmim, rimbursim…
@@ -15,6 +15,8 @@ export const paymentChangeLogsTable = pgTable("payment_change_logs", {
   newValue: text("new_value"),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_payment_change_logs_payment_id").on(t.paymentId),
+]);
 
 export type PaymentChangeLog = typeof paymentChangeLogsTable.$inferSelect;

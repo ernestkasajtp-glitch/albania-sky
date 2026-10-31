@@ -15,6 +15,7 @@ export const agentFlightVisibilityTable = pgTable("agent_flight_visibility", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   index("agent_flight_visibility_agent_idx").on(table.agentId),
+  index("idx_agent_flight_visibility_flight_id").on(table.flightId),
   uniqueIndex("agent_flight_visibility_route_uniq")
     .on(table.agentId, sql`coalesce(${table.fromAirport}, '')`, sql`coalesce(${table.toAirport}, '')`, table.dateFrom, table.dateTo)
     .where(isNull(table.flightId)),

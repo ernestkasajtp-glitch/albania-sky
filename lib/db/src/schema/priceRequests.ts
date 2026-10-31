@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, numeric, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { bookingsTable } from "./bookings";
 
 export const priceChangeRequestsTable = pgTable("price_change_requests", {
@@ -18,7 +18,9 @@ export const priceChangeRequestsTable = pgTable("price_change_requests", {
   unreadByManager: boolean("unread_by_manager").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (t) => [
+  index("idx_price_change_requests_booking_id").on(t.bookingId),
+]);
 
 export const priceRequestMessagesTable = pgTable("price_request_messages", {
   id: serial("id").primaryKey(),
@@ -28,7 +30,9 @@ export const priceRequestMessagesTable = pgTable("price_request_messages", {
   authorRole: text("author_role").notNull(),
   message: text("message").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_price_request_messages_request_id").on(t.requestId),
+]);
 
 export type PriceChangeRequest = typeof priceChangeRequestsTable.$inferSelect;
 export type PriceRequestMessage = typeof priceRequestMessagesTable.$inferSelect;
