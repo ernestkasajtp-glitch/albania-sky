@@ -18,8 +18,10 @@ Kjo është e njëjta strukturë si `deploy/nginx.conf` në VPS, kështu që coo
 3. Te shërbimi → **Environment**, plotëso vlerat që kërkohen
    (`RAPIDAPI_KEY`, `SMTP_*`, `NOTIFY_EMAIL`, `GMAIL_FROM`, `FMS_PUBLIC_BASE_URL`)
    dhe çdo variabël tjetër që përdor në VPS (POK, OpenAI, CitizenPlane FTP, inbox-et, etj.).
-4. **Databaza:** databaza e re është bosh. Të dhënat e vërteta janë në VPS.
-   Kopjoji me `pg_dump` nga VPS dhe `pg_restore`/`psql` në "External Database URL" të Render:
+4. **Databaza:** në deploy-in e parë, build-i krijon vetë të gjitha tabelat në databazën bosh
+   (`pnpm --filter @workspace/db run bootstrap`; nëse tabelat ekzistojnë, nuk prek asgjë).
+   Hap `/flight-system/` dhe krijo llogarinë e parë admin.
+   Nëse do të dhënat e vjetra nga VPS, kopjoji me `pg_dump` nga VPS dhe `pg_restore`/`psql` në "External Database URL" të Render:
 
    ```bash
    # në VPS
