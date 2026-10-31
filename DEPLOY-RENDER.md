@@ -14,7 +14,7 @@ Kjo është e njëjta strukturë si `deploy/nginx.conf` në VPS, kështu që coo
 
 1. Hyr në https://dashboard.render.com (me GitHub).
 2. **New → Blueprint** → zgjidh repo-n `albania-sky` → **Apply**.
-   Render krijon shërbimin `albania-sky` dhe databazën `albania-sky-db`.
+   Render krijon shërbimin `albania-sky-app` dhe databazën `albania-sky-db`.
 3. Te shërbimi → **Environment**, plotëso vlerat që kërkohen
    (`RAPIDAPI_KEY`, `SMTP_*`, `NOTIFY_EMAIL`, `GMAIL_FROM`, `FMS_PUBLIC_BASE_URL`)
    dhe çdo variabël tjetër që përdor në VPS (POK, OpenAI, CitizenPlane FTP, inbox-et, etj.).
