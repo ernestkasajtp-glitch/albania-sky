@@ -41,6 +41,7 @@ export const bookingsTable = pgTable("bookings", {
   index("idx_bookings_flight_id").on(t.flightId),
   index("idx_bookings_created_at").on(t.createdAt),
   index("idx_bookings_customer_name").on(t.customerName),
+  index("idx_bookings_booking_user_id").on(t.bookingUserId),
 ]);
 
 export const bookingExtrasTable = pgTable("booking_extras", {

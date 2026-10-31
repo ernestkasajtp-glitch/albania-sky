@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, integer, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { agencyGroupsTable } from "./agencyGroups";
@@ -59,7 +59,10 @@ export const agentCreditTransactionsTable = pgTable("agent_credit_transactions",
   documentUrl: text("document_url"),
   invoiceCode: text("invoice_code"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_agent_credit_tx_agent_created").on(t.agentId, t.createdAt),
+  index("idx_agent_credit_tx_booking_id").on(t.bookingId),
+]);
 
 export const insertAgentSchema = createInsertSchema(agentsTable).omit({ id: true, createdAt: true, updatedAt: true, apiKey: true });
 export type InsertAgent = z.infer<typeof insertAgentSchema>;

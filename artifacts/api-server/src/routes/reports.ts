@@ -99,9 +99,13 @@ router.get("/reports/sales", async (req, res): Promise<void> => {
     return sum + (combinedNet ?? 0);
   }, 0);
 
-  const allPassengers = await db.select().from(passengersTable);
-  const bookingIds = new Set(activeBookings.map(b => b.id));
-  const totalPassengers = allPassengers.filter(p => bookingIds.has(p.bookingId)).length;
+  // Count in the database instead of loading every passenger row into memory.
+  let totalPassengers = 0;
+  for (let i = 0; i < activeIds.length; i += 5000) {
+    const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(passengersTable)
+      .where(inArray(passengersTable.bookingId, activeIds.slice(i, i + 5000)));
+    totalPassengers += Number(row?.n ?? 0);
+  }
 
   const byDayMap: Record<string, { sales: number; profit: number; bookings: number }> = {};
   for (const b of activeBookings) {

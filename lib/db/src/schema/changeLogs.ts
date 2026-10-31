@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { bookingsTable } from "./bookings";
 
 export const bookingChangeLogsTable = pgTable("booking_change_logs", {
@@ -13,6 +13,8 @@ export const bookingChangeLogsTable = pgTable("booking_change_logs", {
   newValue: text("new_value"),
   note: text("note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [
+  index("idx_booking_change_logs_booking_id").on(t.bookingId),
+]);
 
 export type BookingChangeLog = typeof bookingChangeLogsTable.$inferSelect;

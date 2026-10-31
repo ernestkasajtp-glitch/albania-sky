@@ -14,6 +14,28 @@ import fs from "fs";
 import { randomUUID } from "crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Batch loaders for list endpoints: ONE query per related table instead of one
+// (or more) per row. The previous per-row lookups fired thousands of queries on
+// every page load once the tables grew, exhausting the connection pool.
+// Ids are chunked to stay well below Postgres' 65535 bind-parameter limit.
+const ID_CHUNK = 5000;
+async function loadByIds<T>(ids: number[], load: (chunk: number[]) => Promise<T[]>): Promise<T[]> {
+  const unique = [...new Set(ids)];
+  const out: T[] = [];
+  for (let i = 0; i < unique.length; i += ID_CHUNK) out.push(...await load(unique.slice(i, i + ID_CHUNK)));
+  return out;
+}
+function groupBy<T>(rows: T[], key: (row: T) => number): Map<number, T[]> {
+  const map = new Map<number, T[]>();
+  for (const row of rows) { const k = key(row); const list = map.get(k); if (list) list.push(row); else map.set(k, [row]); }
+  return map;
+}
+async function loadAgentNames(ids: number[]): Promise<Map<number, string>> {
+  const rows = await loadByIds(ids, chunk =>
+    db.select({ id: agentsTable.id, name: agentsTable.name }).from(agentsTable).where(inArray(agentsTable.id, chunk)));
+  return new Map(rows.map(r => [r.id, r.name]));
+}
 const paymentsUploadDir = path.join(__dirname, "..", "uploads", "payments");
 fs.mkdirSync(paymentsUploadDir, { recursive: true });
 
@@ -195,18 +217,21 @@ router.get("/payments", async (req, res): Promise<void> => {
 
   const payments = await query.orderBy(paymentsTable.createdAt);
 
-  // Enrich each payment with bookingRef + totalAmount from the booking
-  const enriched = await Promise.all(payments.map(async p => {
+  // Enrich each payment with bookingRef + totalAmount from the booking (one batch query)
+  const bookingRows = await loadByIds(payments.flatMap(p => p.bookingId ? [p.bookingId] : []), chunk =>
+    db.select({ id: bookingsTable.id, bookingRef: bookingsTable.bookingRef, totalAmount: bookingsTable.totalAmount })
+      .from(bookingsTable).where(inArray(bookingsTable.id, chunk)));
+  const bookingById = new Map(bookingRows.map(b => [b.id, b]));
+  const enriched = payments.map(p => {
     const base = formatPayment(p);
     if (!p.bookingId) return { ...base, bookingRef: null, totalAmount: null };
-    const [bk] = await db.select({ bookingRef: bookingsTable.bookingRef, totalAmount: bookingsTable.totalAmount })
-      .from(bookingsTable).where(eq(bookingsTable.id, p.bookingId));
+    const bk = bookingById.get(p.bookingId);
     return {
       ...base,
       bookingRef: bk?.bookingRef ?? null,
       totalAmount: bk ? Number(bk.totalAmount) : null,
     };
-  }));
+  });
 
   res.json(enriched);
 });
@@ -337,23 +362,30 @@ router.get("/payments/ledger", async (req, res): Promise<void> => {
   // ── 1. All payment table rows ──────────────────────────────────────────────
   const payRows = await db.select().from(paymentsTable).orderBy(paymentsTable.createdAt);
 
-  const enrichedPayments = await Promise.all(payRows.map(async p => {
+  const ledgerBookings = await loadByIds(payRows.flatMap(p => p.bookingId ? [p.bookingId] : []), chunk =>
+    db.select({ id: bookingsTable.id, bookingRef: bookingsTable.bookingRef, totalAmount: bookingsTable.totalAmount, agentId: bookingsTable.agentId })
+      .from(bookingsTable).where(inArray(bookingsTable.id, chunk)));
+  const ledgerBookingById = new Map(ledgerBookings.map(b => [b.id, b]));
+  const walletRows = await db.select().from(agentCreditTransactionsTable)
+    .where(sql`${agentCreditTransactionsTable.type} IN ('deposit','credit')`)
+    .orderBy(agentCreditTransactionsTable.createdAt);
+  const ledgerAgentNames = await loadAgentNames([
+    ...ledgerBookings.flatMap(b => b.agentId ? [b.agentId] : []),
+    ...walletRows.map(w => w.agentId),
+  ]);
+
+  const enrichedPayments = payRows.map(p => {
     let bookingRef: string | null = null;
     let totalAmount: number | null = null;
     let agentName: string | null = null;
     let payAgentId: number | null = null;
     if (p.bookingId) {
-      const [bk] = await db
-        .select({ bookingRef: bookingsTable.bookingRef, totalAmount: bookingsTable.totalAmount, agentId: bookingsTable.agentId })
-        .from(bookingsTable).where(eq(bookingsTable.id, p.bookingId));
+      const bk = ledgerBookingById.get(p.bookingId);
       if (bk) {
         bookingRef = bk.bookingRef;
         totalAmount = Number(bk.totalAmount);
         payAgentId = bk.agentId;
-        if (bk.agentId) {
-          const [ag] = await db.select({ name: agentsTable.name }).from(agentsTable).where(eq(agentsTable.id, bk.agentId));
-          agentName = ag?.name ?? null;
-        }
+        if (bk.agentId) agentName = ledgerAgentNames.get(bk.agentId) ?? null;
       }
     }
     return {
@@ -377,7 +409,7 @@ router.get("/payments/ledger", async (req, res): Promise<void> => {
       confirmed: p.confirmed,
       payerType: p.payerType,
     };
-  }));
+  });
 
   // ── 1b. Collapse mass-payment rows (same batchId) into one total line ───────
   // Each aggregate carries the full member list so the UI can expand it and keep
@@ -438,14 +470,9 @@ router.get("/payments/ledger", async (req, res): Promise<void> => {
   }
 
   // ── 2. Wallet movements (deposit + credit only — avoid double-counting) ────
-  const walletRows = await db.select().from(agentCreditTransactionsTable)
-    .where(sql`${agentCreditTransactionsTable.type} IN ('deposit','credit')`)
-    .orderBy(agentCreditTransactionsTable.createdAt);
-
-  const enrichedWallet = await Promise.all(walletRows.map(async w => {
-    let agentName: string | null = null;
-    const [ag] = await db.select({ name: agentsTable.name }).from(agentsTable).where(eq(agentsTable.id, w.agentId));
-    agentName = ag?.name ?? null;
+  // (walletRows + agent names are loaded in one batch above)
+  const enrichedWallet = walletRows.map(w => {
+    const agentName = ledgerAgentNames.get(w.agentId) ?? null;
     return {
       id: `wallet-${w.id}`,
       _source: w.type === "deposit" && w.paymentMethod ? "payment" : "wallet",
@@ -465,7 +492,7 @@ router.get("/payments/ledger", async (req, res): Promise<void> => {
       status: "completed",
       confirmed: true,
     };
-  }));
+  });
 
   // ── 3. Merge + filter ──────────────────────────────────────────────────────
   let rows = [...groupedPayments, ...enrichedWallet].sort((a, b) =>
@@ -545,8 +572,20 @@ router.get("/payments/pending-bookings", async (req, res): Promise<void> => {
     .where(conditions.length ? and(...conditions) : undefined)
     .orderBy(bookingsTable.createdAt);
 
-  const results = await Promise.all(bookings.map(async b => {
-    const payments = await db.select().from(paymentsTable).where(eq(paymentsTable.bookingId, b.id));
+  const pendingIds = bookings.map(b => b.id);
+  const [pendingPayments, pendingPax, pendingFlights, pendingAgentNames] = await Promise.all([
+    loadByIds(pendingIds, chunk => db.select().from(paymentsTable).where(inArray(paymentsTable.bookingId, chunk))),
+    loadByIds(pendingIds, chunk => db.select({ bookingId: passengersTable.bookingId, type: passengersTable.type, cancelled: passengersTable.cancelled })
+      .from(passengersTable).where(inArray(passengersTable.bookingId, chunk))),
+    loadByIds(bookings.map(b => b.flightId), chunk => db.select().from(flightsTable).where(inArray(flightsTable.id, chunk))),
+    loadAgentNames(bookings.flatMap(b => b.agentId ? [b.agentId] : [])),
+  ]);
+  const pendingPaymentsByBooking = groupBy(pendingPayments, p => p.bookingId);
+  const pendingPaxByBooking = groupBy(pendingPax, p => p.bookingId);
+  const pendingFlightById = new Map(pendingFlights.map(f => [f.id, f]));
+
+  const results = bookings.map(b => {
+    const payments = pendingPaymentsByBooking.get(b.id) ?? [];
     const paid = payments.filter(p => p.status === "completed" && !p.isRefund).reduce((s, p) => s + Number(p.amount), 0);
     const refunded = payments.filter(p => p.status === "completed" && p.isRefund).reduce((s, p) => s + Number(p.amount), 0);
     const rawPaid = Math.max(0, paid - refunded);
@@ -556,14 +595,9 @@ router.get("/payments/pending-bookings", async (req, res): Promise<void> => {
     const creditAmount = Math.max(0, rawPaid - totalAmount);
     if (dueAmount <= 0) return null;
 
-    let agentName: string | null = null;
-    if (b.agentId) {
-      const [agent] = await db.select().from(agentsTable).where(eq(agentsTable.id, b.agentId));
-      if (agent) agentName = agent.name;
-    }
-
-    const [flight] = await db.select().from(flightsTable).where(eq(flightsTable.id, b.flightId));
-    const pax = await db.select().from(passengersTable).where(eq(passengersTable.bookingId, b.id));
+    const agentName: string | null = b.agentId ? (pendingAgentNames.get(b.agentId) ?? null) : null;
+    const flight = pendingFlightById.get(b.flightId);
+    const pax = pendingPaxByBooking.get(b.id) ?? [];
     const paxCount = pax.filter(p => p.type !== "infant" && !(p as any).cancelled).length;
     const infantCount = pax.filter(p => p.type === "infant" && !(p as any).cancelled).length;
 
@@ -590,7 +624,7 @@ router.get("/payments/pending-bookings", async (req, res): Promise<void> => {
         flightNumber: flight.flightNumber,
       } : null,
     };
-  }));
+  });
 
   res.json(results.filter(Boolean));
 });
@@ -630,8 +664,20 @@ router.get("/payments/report", async (req, res): Promise<void> => {
     .where(and(...conditions))
     .orderBy(bookingsTable.createdAt);
 
-  const rows = await Promise.all(bookings.map(async b => {
-    const payments = await db.select().from(paymentsTable).where(eq(paymentsTable.bookingId, b.id));
+  const reportIds = bookings.map(b => b.id);
+  const [reportPayments, reportPax, reportFlights, reportAgentNames, splitNetMap] = await Promise.all([
+    loadByIds(reportIds, chunk => db.select().from(paymentsTable).where(inArray(paymentsTable.bookingId, chunk)).orderBy(paymentsTable.id)),
+    loadByIds(reportIds, chunk => db.select().from(passengersTable).where(inArray(passengersTable.bookingId, chunk)).orderBy(passengersTable.id)),
+    loadByIds(bookings.map(b => b.flightId), chunk => db.select().from(flightsTable).where(inArray(flightsTable.id, chunk))),
+    loadAgentNames(bookings.flatMap(b => b.agentId ? [b.agentId] : [])),
+    getSplitNetTotalsMap(reportIds),
+  ]);
+  const reportPaymentsByBooking = groupBy(reportPayments, p => p.bookingId);
+  const reportPaxByBooking = groupBy(reportPax, p => p.bookingId);
+  const reportFlightById = new Map(reportFlights.map(f => [f.id, f]));
+
+  const rows = bookings.map(b => {
+    const payments = reportPaymentsByBooking.get(b.id) ?? [];
     const paid = payments.filter(p => p.status === "completed" && !p.isRefund).reduce((s, p) => s + Number(p.amount), 0);
     const refunded = payments.filter(p => p.status === "completed" && p.isRefund).reduce((s, p) => s + Number(p.amount), 0);
     const rawPaid2 = Math.max(0, paid - refunded);
@@ -639,19 +685,13 @@ router.get("/payments/report", async (req, res): Promise<void> => {
     const paidAmount = Math.min(rawPaid2, totalAmount);
     const dueAmount = wholeEuroDue(totalAmount, rawPaid2);
     const creditAmount = Math.max(0, rawPaid2 - totalAmount);
-    const splitNetMap = await getSplitNetTotalsMap([b.id]);
     const { combinedNet, commission: commCalc } = calcCombinedNetAndCommission(totalAmount, b.netPrice != null ? Number(b.netPrice) : null, splitNetMap.get(b.id) ?? 0, 0);
     const netPrice = combinedNet;
     const commissionAmount = combinedNet != null ? Math.round(commCalc * 100) / 100 : null;
 
-    let agentName: string | null = null;
-    if (b.agentId) {
-      const [agent] = await db.select().from(agentsTable).where(eq(agentsTable.id, b.agentId));
-      if (agent) agentName = agent.name;
-    }
-
-    const [flight] = await db.select().from(flightsTable).where(eq(flightsTable.id, b.flightId));
-    const passengers = await db.select().from(passengersTable).where(eq(passengersTable.bookingId, b.id));
+    const agentName: string | null = b.agentId ? (reportAgentNames.get(b.agentId) ?? null) : null;
+    const flight = reportFlightById.get(b.flightId);
+    const passengers = reportPaxByBooking.get(b.id) ?? [];
 
     if (debtFilter === "debt" && dueAmount <= 0) return null;
     if (debtFilter === "no-debt" && dueAmount > 0) return null;
@@ -690,7 +730,7 @@ router.get("/payments/report", async (req, res): Promise<void> => {
         createdAt: p.createdAt.toISOString(),
       })),
     };
-  }));
+  });
 
   // Non-admins: agjentët me showInReports === false fshihen tërësisht nga raporti.
   let reportRows = rows.filter(Boolean) as NonNullable<(typeof rows)[number]>[];

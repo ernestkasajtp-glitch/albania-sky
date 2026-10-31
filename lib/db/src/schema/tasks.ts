@@ -64,7 +64,10 @@ export const taskNotificationsTable = pgTable("task_notifications", {
   body: text("body"),
   readAt: timestamp("read_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => ({ userIdx: index("task_notifications_user_idx").on(t.userId, t.readAt) }));
+}, (t) => ({
+  userIdx: index("task_notifications_user_idx").on(t.userId, t.readAt),
+  taskIdx: index("idx_task_notifications_task_id").on(t.taskId),
+}));
 
 export type Task = typeof tasksTable.$inferSelect;
 export type TaskComment = typeof taskCommentsTable.$inferSelect;
