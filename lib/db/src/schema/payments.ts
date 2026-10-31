@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, numeric, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, pgSequence, serial, text, integer, numeric, boolean, timestamp, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -10,6 +10,8 @@ import { bookingsTable } from "./bookings";
 // in order, never random). The date prefix is kept; only the trailing code grows.
 // Requires the sequence to exist in the DB:
 //   CREATE SEQUENCE IF NOT EXISTS invoice_code_seq;
+export const invoiceCodeSeq = pgSequence("invoice_code_seq");
+
 export const INVOICE_CODE_DEFAULT = sql`'INV-' || to_char(now(), 'YYMMDD') || '-' || lpad(nextval('invoice_code_seq')::text, 6, '0')`;
 
 export const paymentsTable = pgTable("payments", {
