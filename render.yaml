@@ -1,24 +1,17 @@
 # Render Blueprint — Albania Sky / FMS
 # Render → New → Blueprint → zgjidh repo-n albania-sky.
-# Një shërbim i vetëm: API + paneli (/flight-system/) + portali publik (/).
+# Një shërbim i vetëm (Docker + Chromium): API + paneli (/flight-system/) + portali publik (/).
 services:
   - type: web
     name: albania-sky-app
-    runtime: node
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Creates the schema on an empty database; does nothing if tables exist.
+    preDeployCommand: cd /app && pnpm --filter @workspace/db run bootstrap
     region: frankfurt
     plan: starter
-    buildCommand: >-
-      npm install -g pnpm@10.28.0 &&
-      pnpm install --frozen-lockfile &&
-      pnpm --filter @workspace/db run bootstrap &&
-      pnpm --filter @workspace/api-server run build &&
-      NODE_ENV=production pnpm --filter @workspace/flight-system run build &&
-      NODE_ENV=production pnpm --filter @workspace/booking-engine run build
-    startCommand: cd artifacts/api-server && node --enable-source-maps ./dist/index.mjs
     healthCheckPath: /api/healthz
     envVars:
-      - key: NODE_VERSION
-        value: "22"
       - key: NODE_ENV
         value: production
       - key: SERVE_FRONTENDS
