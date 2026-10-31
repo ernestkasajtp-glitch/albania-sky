@@ -3,7 +3,7 @@
 # Një shërbim i vetëm: API + paneli (/flight-system/) + portali publik (/).
 services:
   - type: web
-    name: albania-sky
+    name: albania-sky-app
     runtime: node
     region: frankfurt
     plan: starter
