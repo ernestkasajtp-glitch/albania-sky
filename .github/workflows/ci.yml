@@ -45,6 +45,22 @@ jobs:
         run: docker build -t albania-sky:ci .
       - name: Chromium is available in the image
         run: docker run --rm albania-sky:ci /usr/bin/chromium --version
+      - name: Container starts against an empty database (like Render)
+        run: |
+          docker network create smoke
+          docker run -d --name pg --network smoke -e POSTGRES_PASSWORD=pg -e POSTGRES_DB=app postgres:16
+          for i in $(seq 1 30); do docker exec pg pg_isready -U postgres && break; sleep 2; done
+          docker run -d --name app --network smoke -p 10000:10000 -e PORT=10000 \
+            -e DATABASE_URL=postgres://postgres:pg@pg:5432/app -e SESSION_SECRET=ci albania-sky:ci
+          ok=0
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:10000/api/healthz; then ok=1; break; fi
+            if [ "$(docker inspect -f '{{.State.Running}}' app)" != "true" ]; then break; fi
+            sleep 3
+          done
+          echo "----- container logs -----"; docker logs app 2>&1 | tail -n 200
+          [ "$ok" = 1 ]
+          curl -fsS -o /dev/null -w 'panel %{http_code}\n' http://localhost:10000/flight-system/
 
   api-tests:
     runs-on: ubuntu-latest
